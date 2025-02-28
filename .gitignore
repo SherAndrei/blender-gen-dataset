@@ -1,0 +1,11 @@
+
+# blender supported input formats
+*.glb
+*.obj
+*.fbx
+*.glTF
+
+# output format
+*.png
+*.npz
+*.csv
