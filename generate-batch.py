@@ -4,7 +4,7 @@ Script for generating realistic rendered images of a 3D model
 from random camera positions using Blender.
 
 Usage:
-    blender --background --python generate-dataset.py -- \
+    blender --background --python generate-batch.py -- \
         --model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
 
 The script:
@@ -19,6 +19,7 @@ The script:
 """
 
 import argparse
+import csv
 import math
 import os
 import random
@@ -114,8 +115,8 @@ def setup_render_engine():
     """Set render engine to Eevee and configure some settings."""
     scene = bpy.context.scene
     scene.render.engine = "BLENDER_EEVEE"
-    scene.render.resolution_x = 512
-    scene.render.resolution_y = 512
+    scene.render.resolution_x = 100
+    scene.render.resolution_y = 100
     scene.render.resolution_percentage = 100
     # Enable ambient occlusion for extra realism.
     scene.eevee.use_gtao = True
@@ -182,6 +183,16 @@ def main():
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
+    # Prepare CSV file for metadata.
+    csv_filepath = os.path.join(args.output_dir, "metadata.csv")
+    csv_file = open(csv_filepath, "w", newline="")
+    csv_writer = csv.writer(csv_file)
+    # Write header: filename, followed by 16 pose values, then focal.
+    header = ["filename"] + [f"m{i}{j}" for i in range(4) for j in range(4)] + ["focal"]
+    csv_writer.writerow(header)
+
+    focal = 35
+
     # Clear scene and import model.
     clear_scene()
     import_model(args.model_path)
@@ -204,7 +215,7 @@ def main():
         look_at(cam_obj, target)
 
         # Set camera parameters.
-        cam_obj.data.lens = 35
+        cam_obj.data.lens = focal
 
         # Enable depth of field for a photographic effect.
         cam_obj.data.dof.use_dof = True
@@ -213,6 +224,19 @@ def main():
         cam_obj.data.dof.aperture_fstop = 2.8  # Lower f-stop for shallower depth of field
 
         scene.camera = cam_obj
+
+        image_filename = f"render_{i:03d}.png"
+        output_filepath = os.path.join(args.output_dir, image_filename)
+        print(f"Rendering image {i+1}/{args.num_images} to {output_filepath}...")
+        render_image(scene, output_filepath)
+
+        # Get the camera's world transformation matrix.
+        pose_matrix = cam_obj.matrix_world
+        # Flatten the 4x4 matrix into a list of 16 values.
+        pose_flat = [f"{elem:.6f}" for row in pose_matrix for elem in row]
+
+        # Write CSV row: filename, flattened pose, focal.
+        csv_writer.writerow([image_filename] + pose_flat + [f"{focal:.2f}"])
 
         # Define output file for this render.
         output_filepath = os.path.join(args.output_dir, f"render_{i:03d}.png")
