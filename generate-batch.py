@@ -91,7 +91,7 @@ def import_model(model_path):
 
 def add_fixed_light():
     """Add a fixed light source if not already added.
-    
+
     The light is a Sun lamp placed at a fixed location.
     """
     if "FixedSun" in bpy.data.objects:
@@ -124,7 +124,7 @@ def setup_render_engine():
         scene.render.engine = "BLENDER_EEVEE"
         scene.eevee.use_ssr = True
     # Enable ambient occlusion for extra realism.
-     scene.eevee.use_gtao = True
+    scene.eevee.use_gtao = True
     # Increase shadow pool size to avoid Shadow buffer full error
     scene.eevee.shadow_pool_size  = '1024'
 
@@ -140,7 +140,7 @@ def create_camera():
 def look_at(obj, target):
     """
     Orient the object to look at the target point.
-    
+
     Args:
         obj: The Blender object to orient (e.g., camera).
         target: mathutils.Vector representing the target point.
@@ -153,7 +153,7 @@ def look_at(obj, target):
 def render_image(scene, output_filepath):
     """
     Render the current scene and save the image.
-    
+
     Args:
         scene: The current Blender scene.
         output_filepath: Filepath where the image will be saved.
@@ -165,10 +165,10 @@ def render_image(scene, output_filepath):
 def generate_random_camera_position(radius=10.0):
     """
     Generate a random camera position on a sphere of the given radius.
-    
+
     The elevation (phi) is chosen in [0, pi/2] so that the camera is above
     the object.
-    
+
     Returns:
         Tuple (x, y, z) representing the camera location.
     """
