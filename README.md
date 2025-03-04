@@ -6,6 +6,17 @@ blender --background --python generate-batch.py -- \
 		--model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
 ```
 
+These scripts were tested on
+```
+❯ blender.exe --background --python-expr "import sys; print(sys.version)"
+Blender 4.3.2 (hash 32f5fdce0a0a built 2024-12-17 03:35:23)
+3.11.9 (main, Oct 15 2024, 19:17:05) [MSC v.1929 64 bit (AMD64)]
+
+Blender quit
+```
+
+---
+
 To generate several batches in parallel run
 ```sh
 ./generate_batches.sh --model_path /path/to/model.glb \
