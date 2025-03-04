@@ -1,10 +1,11 @@
 # Generate NeRF dataset using Blender Python API
 
-Run
-```
-blender --background --python generate-batch.py -- \
-		--model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
-```
+As it states in [Blender's Python API Overview](https://docs.blender.org/api/current/info_overview.html)
+
+> Blender has an embedded Python interpreter which is loaded when Blender is started and stays active while Blender is running.
+
+We'll use Blender' Python interpreter to depend only on Blender version.
+If this does not fit your needs, see [how to use system python](https://docs.blender.org/api/current/info_tips_and_tricks.html#bundled-python-extensions). One can also [build blender into a python module](https://developer.blender.org/docs/handbook/building_blender/python_module/).
 
 These scripts were tested on
 ```
@@ -17,6 +18,12 @@ Blender quit
 
 ---
 
+To generate one batch of images run
+```sh
+blender --background --python generate-batch.py -- \
+		--model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
+```
+
 To generate several batches in parallel run
 ```sh
 ./generate_batches.sh --model_path /path/to/model.glb \
@@ -24,7 +31,7 @@ To generate several batches in parallel run
 ```
 or
 ```ps1
-.\generate_batches.ps1 -model_path <path> [-num_batches <number>] [-num_images_per_batch <number>] [-jobs <number>] [-output_dir <directory>]"
+.\generate_batches.ps1 -model_path <path> [-num_batches <number>] [-num_images_per_batch <number>] [-jobs <number>] [-output_dir <directory>]
 ```
 
 Note: on headless systems (like WSL) before running you are required to set these environmental variables to be able to run on CPU.
