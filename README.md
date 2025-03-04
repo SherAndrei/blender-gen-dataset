@@ -6,6 +6,16 @@ blender --background --python generate-batch.py -- \
 		--model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
 ```
 
+To generate several batches in parallel run
+```sh
+./generate_batches.sh --model_path /path/to/model.glb \
+    [--num_batches 1] [--num_images_per_batch 1] [--jobs <number>] [--output_dir <directory>]
+```
+or
+```ps1
+.\generate_batches.ps1 -model_path <path> [-num_batches <number>] [-num_images_per_batch <number>] [-jobs <number>] [-output_dir <directory>]"
+```
+
 Note: on headless systems (like WSL) before running you are required to set these environmental variables to be able to run on CPU.
 ```bash
 export LIBGL_ALWAYS_SOFTWARE=1
