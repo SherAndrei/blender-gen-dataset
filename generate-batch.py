@@ -114,14 +114,19 @@ def setup_world():
 def setup_render_engine():
     """Set render engine to Eevee and configure some settings."""
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 100
     scene.render.resolution_y = 100
     scene.render.resolution_percentage = 100
+    if bpy.app.version > (4, 1, 0):
+        scene.render.engine = "BLENDER_EEVEE_NEXT"
+        scene.eevee.use_raytracing = True
+    else:
+        scene.render.engine = "BLENDER_EEVEE"
+        scene.eevee.use_ssr = True
     # Enable ambient occlusion for extra realism.
-    scene.eevee.use_gtao = True
-    # Optionally, enable screen-space reflections.
-    scene.eevee.use_ssr = True
+     scene.eevee.use_gtao = True
+    # Increase shadow pool size to avoid Shadow buffer full error
+    scene.eevee.shadow_pool_size  = '1024'
 
 
 def create_camera():
