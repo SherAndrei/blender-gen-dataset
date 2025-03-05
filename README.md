@@ -34,6 +34,17 @@ or
 .\generate_batches.ps1 -model_path <path> [-num_batches <number>] [-num_images_per_batch <number>] [-jobs <number>] [-output_dir <directory>]
 ```
 
+To assemble `.npz` dataset from batches we'll run `assemble-dataset.py`. This script requires `Pillow` package for converting images into rgb arrays. `Pillow` can be installed with
+```sh
+blender --background --python-expr "import sys; import subprocess; subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", \"pillow\"])"
+```
+
+To assemble `.npz` dataset from batches run
+```sh
+blender --background --python assemble-dataset.py -- \
+		--input <batches_folder> [--output dataset.npz]
+```
+
 Note: on headless systems (like WSL) before running you are required to set these environmental variables to be able to run on CPU.
 ```bash
 export LIBGL_ALWAYS_SOFTWARE=1

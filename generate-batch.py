@@ -29,13 +29,18 @@ import bpy
 import mathutils
 
 
-def parse_args():
-    """Parse command-line arguments passed after '--'."""
+def strip_blender_argv():
+    """Remove everything before '--' from `sys.argv`"""
     argv = sys.argv
     if "--" in argv:
-        argv = argv[argv.index("--") + 1:]
+        return argv[argv.index("--") + 1:]
     else:
-        argv = []
+        return []
+
+
+def parse_args():
+    """Parse command-line arguments passed after '--'."""
+    argv = strip_blender_argv()
     parser = argparse.ArgumentParser(
         description="Generate realistic rendered images of a 3D model."
     )
