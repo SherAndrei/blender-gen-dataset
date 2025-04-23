@@ -22,8 +22,8 @@ azi_min = 0.0
 azi_max = 6.283185307179586
 
 [light]
-energy   = 30.0
-location = [5, -5, 10]
+energy   = 10.0
+radius = 40
 
 [render]
 resolution_x = 800

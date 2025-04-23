@@ -95,17 +95,33 @@ def import_model(model_path):
 
 
 def add_fixed_light(light_configuration):
-    """Add a fixed light source if not already added.
+    """Evenly illuminate the object from six directions."""
 
-    The light is a Sun lamp placed at a fixed location.
-    """
-    if "FixedSun" in bpy.data.objects:
-        return
-    light_data = bpy.data.lights.new(name="FixedSun", type="SUN")
-    light_data.energy = light_configuration['energy']
-    light_obj = bpy.data.objects.new(name="FixedSun", object_data=light_data)
-    light_obj.location = tuple(light_configuration['location'])
-    bpy.context.scene.collection.objects.link(light_obj)
+    energy = light_configuration.get('energy', 10)
+    # distance from origin for each sun lamp
+    radius = light_configuration.get('radius', 10.0)
+
+    # Six cardinal directions
+    directions = [
+        (1,  0,  0), (-1,  0,  0),
+        (0,  1,  0), ( 0, -1,  0),
+        (0,  0,  1), ( 0,  0, -1),
+    ]
+
+    for idx, dir_vec in enumerate(directions):
+        # Create a Sun lamp
+        ld = bpy.data.lights.new(name=f"EvenSun{idx}", type='SUN')
+        ld.energy = energy
+        lo = bpy.data.objects.new(name=f"EvenSun{idx}", object_data=ld)
+
+        # Position it out on the sphere
+        lo.location = [d * radius for d in dir_vec]
+
+        # Rotate so its negative Z axis points toward the origin
+        rot = mathutils.Vector(dir_vec).to_track_quat('-Z', 'Y').to_euler()
+        lo.rotation_euler = rot
+
+        bpy.context.scene.collection.objects.link(lo)
 
 
 def setup_world():
