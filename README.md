@@ -44,16 +44,6 @@ to generate 20 images of the `model.glb` into `output` directory use
 blender --background --python generate-batch.py -- /path/to/model.glb /path/to/output 20
 ```
 
-To generate several batches in parallel run
-```sh
-./generate_batches.sh --model_path /path/to/model.glb \
-    [--num_batches 1] [--num_images_per_batch 1] [--jobs <number>] [--output_dir <directory>]
-```
-or
-```ps1
-.\generate_batches.ps1 -model_path <path> [-num_batches <number>] [-num_images_per_batch <number>] [-jobs <number>] [-output_dir <directory>]
-```
-
 To assemble `.npz` dataset from batches we'll run `assemble-dataset.py`. This script requires `Pillow` package for converting images into rgb arrays. `Pillow` can be installed with
 ```sh
 blender --background --python-expr "import sys; import subprocess; subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", \"pillow\"])"
