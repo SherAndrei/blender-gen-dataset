@@ -17,6 +17,7 @@ Blender quit
 ```
 
 ---
+## Examples
 
 See help
 ```
@@ -34,15 +35,23 @@ options:
   -h, --help         show this help message and exit
 ```
 
-to generate one image of the `model.glb` into `output` directory use
-```sh
-blender --background --python generate-batch.py -- /path/to/model.glb /path/to/output
-```
-
-to generate 20 images of the `model.glb` into `output` directory use
-```sh
-blender --background --python generate-batch.py -- /path/to/model.glb /path/to/output 20
-```
+0. Download [skull model](https://www.blenderkit.com/get-blenderkit/d8f85f94-2434-4d8e-ada7-00aeca2225f2/) asset from BlenderKit database directly to Blender.
+1. Prepare the model using Blender:
+	1. Remove useless text by deleting it from collection.
+	2. Snap the model to the (0,0,0), because the script assumes model is centered (see [this](https://www.youtube.com/watch?v=IL43HB-Oyh8) for reference).
+1. Export result as `male-skull.glb`.
+2. To generate one image into `output` directory use
+	```sh
+	blender --background --python generate-batch.py -- male-skull.glb ./output
+	```
+3. See result in `output` directory
+	![preview-male-skull](./references/male-skull.png)
+4. To generate 20 images into `output` directory use
+	```sh
+	blender --background --python generate-batch.py -- male-skull.glb ./output 20
+	```
+5. See result in `output` directory[^1]
+	![preview-male-skulls](./references/male-skulls.png)
 
 To assemble `.npz` dataset from batches we'll run `assemble-dataset.py`. This script requires `Pillow` package for converting images into rgb arrays. `Pillow` can be installed with
 ```sh
@@ -75,3 +84,5 @@ sudo mkdir -p /media/generatormeta
 sudo mount -t tmpfs -o size=1024M tmpfs /media/generatormeta/
 ```
 * On Windows using [ImDisk](https://imdisktoolkit.com/).
+
+[^1]: this grid was made with [this](./scripts/grid)

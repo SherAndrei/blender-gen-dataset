@@ -162,7 +162,13 @@ def create_camera(camera_configuration):
     cam_obj = bpy.data.objects.new("RandomCam", cam_data)
     bpy.context.scene.collection.objects.link(cam_obj)
 
-    cam_obj.data.lens = camera_configuration['focal_length']
+    cam_obj.data.lens_unit = "MILLIMETERS"
+    cam_obj.data.lens = camera_configuration['lens'].get('focal_length', 50)
+    cam_obj.data.clip_start = camera_configuration['lens'].get('clip_start', 0.1)
+    cam_obj.data.clip_end = camera_configuration['lens'].get('clip_end', 1000)
+
+    cam_obj.data.sensor_width = camera_configuration.get('sensor_width')
+    cam_obj.data.sensor_height = camera_configuration.get('sensor_height')
 
     if camera_configuration['use_dof']:
       cam_obj.data.dof.use_dof = True

@@ -2,18 +2,23 @@
 seed = 1
 
 [camera]
-focal_length  = 50.0
-# Enable depth of field for a photographic effect.
-use_dof      = true
+use_dof = false
+# APS-C Canon
+sensor_width = 22.3
+sensor_height = 14.9
+
+[camera.lens]
+clip_start = 0.1
+clip_end = 1000
+focal_length = 50
 
 [camera.dof]
-# Lower f-stop for shallower depth of field
 aperture_fstop    = 2.8
 
 [camera.position]
 # Radius range (from origin)
-r_min   = 10
-r_max   = 10
+r_min   = 1
+r_max   = 1
 # Inclination θ ∈ [0, π/2]
 inc_min = 0.0
 inc_max = 1.5707963267948966
@@ -22,15 +27,14 @@ azi_min = 0.0
 azi_max = 6.283185307179586
 
 [light]
-energy   = 10.0
-radius = 40
+energy   = 4.0
+radius = 10
 
 [render]
-resolution_x = 800
-resolution_y = 800
-use_GPU = true
+resolution_x = 200
+resolution_y = 200
 engine = "cycles"
-samples = 512
+samples = 256
 
 [render.cycles]
 use_denoising = false
