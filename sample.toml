@@ -1,0 +1,44 @@
+# Seed for randomness, remove field for non-deterministic results
+seed = 1
+
+[camera]
+focal_length  = 50.0
+# Enable depth of field for a photographic effect.
+use_dof      = true
+
+[camera.dof]
+# Lower f-stop for shallower depth of field
+aperture_fstop    = 2.8
+
+[camera.position]
+# Radius range (from origin)
+r_min   = 10
+r_max   = 10
+# Inclination θ ∈ [0, π/2]
+inc_min = 0.0
+inc_max = 1.5707963267948966
+# Azimuth φ ∈ [0, 2π]
+azi_min = 0.0
+azi_max = 6.283185307179586
+
+[light]
+energy   = 30.0
+location = [5, -5, 10]
+
+[render]
+resolution_x = 800
+resolution_y = 800
+use_GPU = true
+engine = "cycles"
+samples = 512
+
+[render.cycles]
+use_denoising = false
+use_adaptive_sampling  = false
+
+[render.eevee]
+use_raytracing = false
+use_gtao = false
+use_ssr = false
+# Increase shadow pool size to avoid Shadow buffer full error
+shadow_pool_size = '1024'

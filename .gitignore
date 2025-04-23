@@ -9,3 +9,6 @@
 *.png
 *.npz
 *.csv
+
+# script config file
+config.toml

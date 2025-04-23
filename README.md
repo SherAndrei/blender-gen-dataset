@@ -1,4 +1,4 @@
-# Generate NeRF dataset using Blender Python API
+# Generate Learning-based Multi-view Stereo dataset using Blender Python API
 
 As it states in [Blender's Python API Overview](https://docs.blender.org/api/current/info_overview.html)
 
@@ -10,18 +10,38 @@ If this does not fit your needs, see [how to use system python](https://docs.ble
 These scripts were tested on
 ```
 ❯ blender.exe --background --python-expr "import sys; print(sys.version)"
-Blender 4.3.2 (hash 32f5fdce0a0a built 2024-12-17 03:35:23)
-3.11.9 (main, Oct 15 2024, 19:17:05) [MSC v.1929 64 bit (AMD64)]
+Blender 4.2.9 LTS (hash a10f621e649a built 2025-04-15 01:46:41)
+3.11.7 (main, Jun 11 2024, 12:31:01) [GCC 11.2.1 20220127 (Red Hat 11.2.1-9)]
 
 Blender quit
 ```
 
 ---
 
-To generate one batch of images run
+See help
+```
+Blender 4.2.9 LTS (hash a10f621e649a built 2025-04-15 01:46:41)
+usage: blender [-h] model_path output_directory [number_of_renders]
+
+Script for generating rendered images of a 3D model from random camera positions using Blender, driven by config.toml.
+
+positional arguments:
+  model_path         Path to the 3D model file (OBJ, FBX, glTF, GLB).
+  output_directory   Directory where the rendered images will be saved.
+  number_of_renders  Number of images to generate per run.
+
+options:
+  -h, --help         show this help message and exit
+```
+
+to generate one image of the `model.glb` into `output` directory use
 ```sh
-blender --background --python generate-batch.py -- \
-		--model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
+blender --background --python generate-batch.py -- /path/to/model.glb /path/to/output
+```
+
+to generate 20 images of the `model.glb` into `output` directory use
+```sh
+blender --background --python generate-batch.py -- /path/to/model.glb /path/to/output 20
 ```
 
 To generate several batches in parallel run
@@ -44,6 +64,8 @@ To assemble `.npz` dataset from batches run
 blender --background --python assemble-dataset.py -- \
 		--input <batches_folder> [--output dataset.npz]
 ```
+
+---
 
 Note: on headless systems (like WSL) before running you are required to set these environmental variables to be able to run on CPU.
 ```bash
