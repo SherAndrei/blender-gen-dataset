@@ -23,6 +23,7 @@ import math
 import os
 import random
 import tomllib
+import shutil
 import sys
 
 import bpy
@@ -271,6 +272,7 @@ def main():
         bpy.data.objects.remove(cam_obj, do_unlink=True)
         bpy.data.cameras.remove(camera, do_unlink=True)
 
+    shutil.copy2("config.toml", output_dir)
     print("Rendering completed.")
 
 
