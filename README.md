@@ -53,6 +53,17 @@ options:
 5. See result in `output` directory[^1]
 	![preview-male-skulls](./references/male-skulls.png)
 
+---
+## Plugins
+
+This script provides extensibility via plugins. Plugins allow the user to configure the world without changing the script itself. Plugin infrastructure is implemented by referencing [this](https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures) article.
+
+Plugin is user defined interface, which complies with interface defined in [`IPlugin`](./plugins/__init__.py). To add new plugin simply create new `.py` file inside the `plugins` directory. To remove one plugin from being executed move the source code out of the `plugins` directory.
+
+See examples in [`plugins`](./plugins/).
+
+---
+
 To assemble `.npz` dataset from batches we'll run `assemble-dataset.py`. This script requires `Pillow` package for converting images into rgb arrays. `Pillow` can be installed with
 ```sh
 blender --background --python-expr "import sys; import subprocess; subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", \"pillow\"])"

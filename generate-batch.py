@@ -5,17 +5,7 @@ from random camera positions using Blender, driven by config.toml.
 
 Usage:
     blender --background --python generate-batch.py -- \
-        --model_path /path/to/model.glb --num_images 10 --output_dir /path/to/output
-
-The script:
-    - Clears the current scene.
-    - Imports the 3D model (supports OBJ, FBX, glTF, GLB).
-    - Sets up the render engine (Eevee) with world and light settings
-      approximating Blender's Material Preview mode.
-    - Adds a fixed single light source.
-    - For each image, creates a camera at a random position on a sphere
-      (radius=10) above the object, points it to the origin,
-      enables depth of field and renders the image.
+        /path/to/model.glb /path/to/output 10
 """
 
 import argparse
@@ -223,16 +213,48 @@ def random_camera_position(camera_position_configuration):
     return spherical_to_cartesian(r, inc, azi)
 
 
-def load_config(path="config.toml"):
+def load_config(path):
     """Load and return the TOML config as a dict."""
     with open(path, "rb") as f:
         return tomllib.load(f)
 
 
+def discover_plugins(dirname):
+    """ Discover the plugin classes contained in Python files, given a
+        directory name to scan. Return a list of plugin classes.
+    """
+    import importlib
+    import importlib.util
+    import importlib.machinery
+    def import_module_from_spec(spec):
+        """Import module from found spec.
+           Standard `import` does not work, since the script is not in path.
+           Source: https://docs.python.org/3.11/library/importlib.html#importing-a-source-file-directly
+        """
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module
+
+    plugins = importlib.machinery.PathFinder().find_spec(dirname, __file__)
+    if plugins is None:
+        print(f"No module named {dirname!r} found, skip importing.")
+        return list()
+    plugins = import_module_from_spec(plugins)
+
+    import pkgutil
+    for finder, name, ispkg in pkgutil.iter_modules([dirname]):
+        # since `plugins` package is already imported and is in sys.modules
+        # Python can import its subpackages
+        importlib.import_module(f"plugins.{name}")
+    return getattr(plugins, 'IPluginRegistry').plugins
+
+
 def main():
     """Main function."""
     args = parse_args()
-    cfg = load_config()
+
+    cfg = load_config('config.toml')
 
     model_path = args.model_path
     N = args.number_of_renders
@@ -242,6 +264,7 @@ def main():
 
     output_dir = args.output_directory
     os.makedirs(output_dir, exist_ok=True)
+    plugins = [P(cfg) for P in discover_plugins('plugins')]
 
     clear_scene()
     import_model(model_path)
@@ -255,6 +278,9 @@ def main():
     target = mathutils.Vector((0.0, 0.0, 0.0))
     scene = bpy.context.scene
 
+    for plugin in plugins:
+        plugin.on_scene_created(scene, output_dir)
+
     for i in range(N):
         cam_obj = create_camera(cfg['camera'])
         cam_obj.location = random_camera_position(cfg["camera"]["position"])
@@ -262,12 +288,14 @@ def main():
 
         scene.camera = cam_obj
 
+        for plugin in plugins:
+            plugin.on_camera_created(scene, cam_obj, i, output_dir)
+
         image_filename = f"{i:03d}_render.png"
         output_filepath = os.path.join(output_dir, image_filename)
         print(f"Rendering image {i+1}/{N} to {output_filepath}...")
         render_image(scene, output_filepath)
 
-        # Clean up: remove the camera.
         camera = cam_obj.data
         bpy.data.objects.remove(cam_obj, do_unlink=True)
         bpy.data.cameras.remove(camera, do_unlink=True)
