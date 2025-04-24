@@ -262,7 +262,7 @@ def main():
 
         scene.camera = cam_obj
 
-        image_filename = f"render_{i:03d}.png"
+        image_filename = f"{i:03d}_render.png"
         output_filepath = os.path.join(output_dir, image_filename)
         print(f"Rendering image {i+1}/{N} to {output_filepath}...")
         render_image(scene, output_filepath)
