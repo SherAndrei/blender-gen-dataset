@@ -26,7 +26,10 @@ def make_grid(input_dir: str, rows: int, cols: int, out_file: str) -> None:
         x, y = col * w, row * h
 
         if idx < len(files):
-            img = Image.open(os.path.join(input_dir, files[idx])).convert('RGBA')
+            img = Image.open(os.path.join(input_dir, files[idx]))
+            if img.mode == 'I;16':
+                img = img.point(lambda i: i * (1 / 255)).convert("RGB")
+            img = img.convert('RGBA')
         else:
             img = Image.new('RGBA', (w, h), (255, 255, 255, 0))
 
