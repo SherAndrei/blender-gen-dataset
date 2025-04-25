@@ -332,6 +332,9 @@ def main():
     print("Total render time (hh:mm:ss): " + str(diff))
     print("Average seconds per image: " + str(diff.seconds / N))
 
+    for plugin in plugins:
+        plugin.on_rendering_completed(scene)
+
     shutil.copy2("config.toml", output_dir)
 
 
