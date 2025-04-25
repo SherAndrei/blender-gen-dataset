@@ -136,6 +136,12 @@ def setup_render_engine(render_configuration):
         scene.cycles.samples = render_configuration["samples"]
         scene.cycles.use_denoising = render_configuration['cycles']["use_denoising"]
         scene.cycles.use_adaptive_sampling = render_configuration['cycles']["use_adaptive_sampling"]
+        scene.cycles.max_bounces = render_configuration['cycles']['max_bounces']
+        scene.cycles.transparent_max_bounces = render_configuration['cycles']['transparent_max_bounces']
+        scene.cycles.diffuse_bounces = render_configuration['cycles']['diffuse_bounces']
+        scene.cycles.glossy_bounces = render_configuration['cycles']['glossy_bounces']
+        scene.cycles.transmission_bounces = render_configuration['cycles']['transmission_bounces']
+        scene.cycles.volume_bounces = render_configuration['cycles']['volume_bounces']
     elif render_configuration['engine'] == 'eevee':
         if bpy.app.version > (4, 1, 0):
           scene.render.engine = "BLENDER_EEVEE_NEXT"
