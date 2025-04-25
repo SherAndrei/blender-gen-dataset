@@ -60,7 +60,9 @@ This script provides extensibility via plugins. Plugins allow the user to config
 
 Plugin is user defined interface, which complies with interface defined in [`IPlugin`](./plugins/__init__.py). To add new plugin simply create new `.py` file inside the `plugins` directory. To remove one plugin from being executed move the source code out of the `plugins` directory.
 
-See examples in [`plugins`](./plugins/).
+See examples, such as mask, normal and depth map in [`plugins`](./plugins/).
+
+![diamonds](./references/diamonds.png)
 
 ---
 
