@@ -30,6 +30,12 @@ azi_max = 6.283185307179586
 energy   = 4.0
 radius = 10
 
+[world]
+strength = 1.0
+
+[world.environment_texture]
+path = ""
+
 [render]
 resolution_x = 200
 resolution_y = 200

@@ -117,12 +117,25 @@ def add_fixed_light(light_configuration):
         bpy.context.scene.collection.objects.link(lo)
 
 
-def setup_world():
-    """Configure world settings to mimic Material Preview mode."""
-    if bpy.context.scene.world is None:
-        bpy.context.scene.world = bpy.data.worlds.new("World")
+def setup_world(world_configuration):
+    """Configure world settings."""
+    bpy.context.scene.world = bpy.data.worlds.new("World")
     world = bpy.context.scene.world
+
     world.use_nodes = True
+    nodes = world.node_tree.nodes
+
+    background_node = nodes['Background']
+    background_node.inputs[1].default_value = world_configuration.get('strength', 1.0)
+
+    if world_configuration['color'] == 'environment_texture':
+        env = world_configuration['environment_texture']
+
+        environment_texture_node = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")
+        image = bpy.data.images.load(env['path'])
+        environment_texture_node.image = (image)
+
+        world.node_tree.links.new(environment_texture_node.outputs['Color'], background_node.inputs['Color'])
 
 
 def setup_render_engine(render_configuration):
@@ -277,10 +290,11 @@ def main():
     clear_scene()
     import_model(model_path)
 
-    setup_world()
+    setup_world(cfg['world'])
     setup_render_engine(cfg.get('render'))
 
-    add_fixed_light(cfg.get('light'))
+    if (light_configuration := cfg.get('light')):
+      add_fixed_light(light_configuration)
 
     # Assume the imported object is centered at origin.
     target = mathutils.Vector((0.0, 0.0, 0.0))
