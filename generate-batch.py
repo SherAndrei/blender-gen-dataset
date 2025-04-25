@@ -79,6 +79,8 @@ def import_model(model_path):
         bpy.ops.import_scene.fbx(filepath=model_path)
     elif ext in (".gltf", ".glb"):
         bpy.ops.import_scene.gltf(filepath=model_path)
+    elif ext in ".blend":
+        bpy.ops.wm.open_mainfile(filepath=model_path)
     else:
         raise ValueError("Unsupported model format: {}".format(ext))
     # Force update of scene after import.
