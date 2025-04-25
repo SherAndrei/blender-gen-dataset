@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import datetime
 import math
 import os
 import random
@@ -303,6 +304,8 @@ def main():
     for plugin in plugins:
         plugin.on_scene_created(scene, output_dir)
 
+    start_time = datetime.datetime.now()
+
     for i in range(N):
         cam_obj = create_camera(cfg['camera'])
         cam_obj.location = random_camera_position(cfg["camera"]["position"])
@@ -322,8 +325,14 @@ def main():
         bpy.data.objects.remove(cam_obj, do_unlink=True)
         bpy.data.cameras.remove(camera, do_unlink=True)
 
-    shutil.copy2("config.toml", output_dir)
+    end_time = datetime.datetime.now()
+    diff = end_time - start_time
+
     print("Rendering completed.")
+    print("Total render time (hh:mm:ss): " + str(diff))
+    print("Average seconds per image: " + str(diff.seconds / N))
+
+    shutil.copy2("config.toml", output_dir)
 
 
 if __name__ == "__main__":
