@@ -15,7 +15,10 @@ focal_length = 50
 [camera.dof]
 aperture_fstop    = 2.8
 
-[camera.position]
+[camera.location]
+mode = "random"
+
+[camera.location.random]
 # Radius range (from origin)
 r_min   = 1
 r_max   = 1
@@ -25,6 +28,10 @@ inc_max = 1.5707963267948966
 # Azimuth φ ∈ [0, 2π]
 azi_min = 0.0
 azi_max = 6.283185307179586
+
+[camera.location.uniform]
+radius = 1
+slices = 5
 
 [light]
 energy   = 4.0

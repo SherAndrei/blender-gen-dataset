@@ -1,0 +1,20 @@
+[project]
+name = "uniform-hemisphere-points"
+version = "0.1.0"
+description = "Plot points on hemisphere"
+authors = [
+    {name = "SherAndrei",email = "welldryus@gmail.com"}
+]
+license = {text = "mIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyqt5 (>=5.15.11,<6.0.0)",
+    "matplotlib (>=3.10.1,<4.0.0)",
+    "numpy (>=2.2.5,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

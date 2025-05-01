@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Script for generating rendered images of a 3D model
-from random camera positions using Blender, driven by config.toml.
+Script for generating rendered images of a 3D model using Blender, driven by config.toml.
 
 Usage:
     blender --background --python generate-batch.py -- \
@@ -34,8 +33,8 @@ def parse_args():
     """Parse command-line arguments passed after '--'."""
     argv = strip_blender_argv()
     parser = argparse.ArgumentParser(
-        description="Script for generating rendered images of a 3D model from "
-        + "random camera positions using Blender, driven by config.toml."
+        description="Script for generating rendered images of a 3D model using "
+        + "Blender, driven by config.toml."
     )
     parser.add_argument(
         "model_path",
@@ -227,12 +226,43 @@ def spherical_to_cartesian(radius, inc, azi):
     return x, y, z
 
 
-def random_camera_position(camera_position_configuration):
+def random_camera_location(camera_location_configuration):
     """Sample a random point on the upper hemisphere."""
-    r = random.uniform(camera_position_configuration["r_min"], camera_position_configuration["r_max"])
-    inc = random.uniform(camera_position_configuration["inc_min"], camera_position_configuration["inc_max"])
-    azi = random.uniform(camera_position_configuration["azi_min"], camera_position_configuration["azi_max"])
+    r = random.uniform(camera_location_configuration["r_min"], camera_location_configuration["r_max"])
+    inc = random.uniform(camera_location_configuration["inc_min"], camera_location_configuration["inc_max"])
+    azi = random.uniform(camera_location_configuration["azi_min"], camera_location_configuration["azi_max"])
     return spherical_to_cartesian(r, inc, azi)
+
+
+def next_location_on_sphere(slices, i, N):
+    if not (0 <= i < N) or not (1 <= slices <= N):
+        raise ValueError("0 ≤ i < N and 1 ≤ slices ≤ N must hold")
+
+    slice_angle = math.pi / 2 / (slices + 1)
+    per_slice = (N + slices - 1) // slices
+    current_slice = i // per_slice
+    inc = slice_angle * (current_slice + 1)
+    azi = (2 * math.pi * (i + 1)) / per_slice
+    return inc, azi
+
+
+def uniform_camera_location(camera_location_configuration, i, N):
+    slices = camera_location_configuration.get("slices", 1)
+    slices = min(max(1, slices), N)
+    radius = camera_location_configuration.get("radius", 1)
+    inc, azi = next_location_on_sphere(slices, i, N)
+    return spherical_to_cartesian(radius, inc, azi)
+
+
+def get_camera_location(camera_location_configuration, i, N):
+    mode = camera_location_configuration.get("mode", "uniform")
+
+    if mode == "random":
+      return random_camera_location(camera_location_configuration[mode])
+    if mode == "uniform":
+      return uniform_camera_location(camera_location_configuration[mode], i, N)
+
+    raise RuntimeError("unknown camera location mode")
 
 
 def load_config(path):
@@ -308,7 +338,7 @@ def main():
 
     for i in range(N):
         cam_obj = create_camera(cfg['camera'])
-        cam_obj.location = random_camera_position(cfg["camera"]["position"])
+        cam_obj.location = get_camera_location(cfg["camera"]["location"], i, N)
         point_camera_at(cam_obj, target)
 
         scene.camera = cam_obj

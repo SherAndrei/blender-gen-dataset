@@ -24,7 +24,7 @@ See help
 Blender 4.2.9 LTS (hash a10f621e649a built 2025-04-15 01:46:41)
 usage: blender [-h] model_path output_directory [number_of_renders]
 
-Script for generating rendered images of a 3D model from random camera positions using Blender, driven by config.toml.
+Script for generating rendered images of a 3D model using Blender, driven by config.toml.
 
 positional arguments:
   model_path         Path to the 3D model file (OBJ, FBX, glTF, GLB).
