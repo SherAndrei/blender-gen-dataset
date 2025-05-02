@@ -23,5 +23,8 @@ class IPlugin(object, metaclass=IPluginRegistry):
     def on_camera_created(self, scene, camera_obj, index, output_path):
         pass
 
+    def on_another_render_completed(self, scene, camera_obj, index, output_path):
+        pass
+
     def on_rendering_completed(self, scene):
         pass

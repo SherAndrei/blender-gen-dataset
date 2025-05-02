@@ -402,6 +402,9 @@ def main(args):
         print(f"Rendering image {i+1}/{N} to {output_filepath}...")
         render_image(scene, output_filepath)
 
+        for plugin in plugins:
+            plugin.on_another_render_completed(scene, cam_obj, i, output_dir)
+
         camera = cam_obj.data
         bpy.data.objects.remove(cam_obj, do_unlink=True)
         bpy.data.cameras.remove(camera, do_unlink=True)
