@@ -53,7 +53,7 @@ def parse_args():
         nargs='?',
         help="Number of images to generate per run.",
     )
-    return parser.parse_args(argv)
+    return vars(parser.parse_args(argv))
 
 
 def clear_scene():
@@ -353,18 +353,16 @@ def discover_plugins(dirname):
     return getattr(plugins, 'IPluginRegistry').plugins
 
 
-def main():
+def main(args):
     """Main function."""
-    args = parse_args()
-
     cfg = load_config('config.toml')
 
-    model_path = args.model_path
-    N = args.number_of_renders
+    model_path = args['model_path']
+    N = args['number_of_renders']
+    output_dir = args['output_directory']
 
     random.seed(cfg.get("seed"))
 
-    output_dir = args.output_directory
     os.makedirs(output_dir, exist_ok=True)
     plugins = [P(cfg) for P in discover_plugins('plugins')]
 
@@ -422,4 +420,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)
