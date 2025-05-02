@@ -45,6 +45,7 @@ path = ""
 
 [world.image_texture]
 path = ""
+extension = 'EXTEND'
 
 [render]
 resolution_x = 200

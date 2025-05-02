@@ -141,7 +141,7 @@ def setup_world(world_configuration):
         background_image_node = world.node_tree.nodes.new(type="ShaderNodeTexImage")
         image = bpy.data.images.load(color_cfg['path'])
         background_image_node.image = (image)
-        background_image_node.extension = 'EXTEND'
+        background_image_node.extension = color_cfg['extension']
 
         # align background image to the window
         texture_coordinate = world.node_tree.nodes.new(type="ShaderNodeTexCoord")
