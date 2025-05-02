@@ -246,23 +246,46 @@ def random_camera_location(camera_location_configuration):
     return spherical_to_cartesian(r, inc, azi)
 
 
-def next_location_on_sphere(slices, i, N):
-    if not (0 <= i < N) or not (1 <= slices <= N):
-        raise ValueError("0 ≤ i < N and 1 ≤ slices ≤ N must hold")
+def next_location_on_sphere(inc_start: float, inc_stop: float, inc_step: float, i: int, N: int):
+    if not (0 <= i < N):
+        raise ValueError("0 <= i < N must hold")
+    if not (0 <= inc_start < (math.pi / 2)):
+        raise ValueError("0 <= inc_start < (math.pi / 2) must hold")
+    if not (0 < inc_stop <= (math.pi / 2)):
+        raise ValueError("0 < inc_stop <= (math.pi / 2) must hold")
+    if not (inc_start < inc_stop):
+        raise ValueError("inc_start < inc_stop must hold")
+    if not (inc_step > 0):
+        raise ValueError("inc_step > 0 must hold")
 
-    slice_angle = math.pi / 2 / (slices + 1)
-    per_slice = (N + slices - 1) // slices
-    current_slice = i // per_slice
-    inc = slice_angle * (current_slice + 1)
-    azi = (2 * math.pi * (i + 1)) / per_slice
+    # `ceil` to include band on `inc_start` position
+    n_bands = math.ceil((inc_stop - inc_start) / inc_step)
+    locations_per_slice = (N + n_bands - 1) // n_bands
+    current_slice = i // locations_per_slice
+    inc = inc_start + inc_step * current_slice
+    azi = (2 * math.pi * (i + 1)) / locations_per_slice
     return inc, azi
 
 
+def safe_eval(expr: str) -> float:
+    from types import MappingProxyType
+    """Evaluate a numeric Python expression in a restricted namespace."""
+    allowed_names = MappingProxyType({"math": math, "pi": math.pi})
+    try:
+        value = eval(expr, {"__builtins__": {}}, allowed_names)
+    except Exception as exc:
+        raise argparse.ArgumentTypeError(f"Bad expression '{expr}': {exc}")
+    if not isinstance(value, (int, float)):
+        raise argparse.ArgumentTypeError(f"Expression '{expr}' did not return a number")
+    return float(value)
+
+
 def uniform_camera_location(camera_location_configuration, i, N):
-    slices = camera_location_configuration.get("slices", 1)
-    slices = min(max(1, slices), N)
-    radius = camera_location_configuration.get("radius", 1)
-    inc, azi = next_location_on_sphere(slices, i, N)
+    inc_start = safe_eval(camera_location_configuration.get('inc_start', 'math.pi / 4'))
+    inc_stop = safe_eval(camera_location_configuration.get('inc_stop', 'math.pi / 2'))
+    inc_step = safe_eval(camera_location_configuration.get('inc_step', 'math.pi / 2'))
+    radius = camera_location_configuration.get("radius", 1.0)
+    inc, azi = next_location_on_sphere(inc_start, inc_stop, inc_step, i, N)
     return spherical_to_cartesian(radius, inc, azi)
 
 

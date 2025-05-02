@@ -31,7 +31,9 @@ azi_max = 6.283185307179586
 
 [camera.location.uniform]
 radius = 1
-slices = 5
+inc_start = 'math.nextafter(math.pi / 2, -math.inf)'
+inc_stop = 'math.pi / 2'
+inc_step = 'math.pi / 2'
 
 [light]
 energy   = 4.0
