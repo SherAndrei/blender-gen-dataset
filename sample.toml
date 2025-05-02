@@ -66,14 +66,14 @@ engine = "cycles"
 samples = 256
 
 [render.cycles]
-use_denoising = false
-use_adaptive_sampling  = false
-max_bounces = 12
-diffuse_bounces = 4
-glossy_bounces = 4
-transmission_bounces = 12
-volume_bounces = 0
-transparent_max_bounces = 12
+use_denoising = true
+use_adaptive_sampling  = true
+max_bounces = 1024
+diffuse_bounces = 1024
+glossy_bounces = 1024
+transmission_bounces = 1024
+volume_bounces = 1024
+transparent_max_bounces = 1024
 
 [render.eevee]
 use_raytracing = false
