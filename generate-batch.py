@@ -87,7 +87,9 @@ def import_model(model_path):
     bpy.context.view_layer.update()
 
 
-def safe_eval(expr: str) -> float:
+def safe_eval(expr) -> float:
+    if isinstance(expr, (int, float)):
+        return float(expr)
     from types import MappingProxyType
     """Evaluate a numeric Python expression in a restricted namespace."""
     allowed_names = MappingProxyType({"math": math, "pi": math.pi})
