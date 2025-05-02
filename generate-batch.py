@@ -139,14 +139,14 @@ def point_object_at(obj, target):
 
 def setup_light(light_configuration, target):
     light_type = light_configuration.get('type', 'SUN')
-    energy = light_configuration.get('energy', 10)
+    energy = light_configuration.get('energy', 1.0)
     mode = light_configuration.get('mode', 'uniform')
 
     mode_cfg = light_configuration[mode]
     if mode == 'uniform':
         amount = mode_cfg.get('amount', 3)
         radius = mode_cfg.get('radius', 10.0)
-        inc_start = safe_eval(mode_cfg.get('inc_start', 'math.pi / 8'))
+        inc_start = safe_eval(mode_cfg.get('inc_start', 'math.pi / 4'))
         inc_stop = safe_eval(mode_cfg.get('inc_stop', 'math.pi / 2'))
         inc_step = safe_eval(mode_cfg.get('inc_step', 'math.pi / 2'))
 
@@ -178,7 +178,11 @@ def setup_world(world_configuration):
     background_node = nodes['Background']
     background_node.inputs[1].default_value = world_configuration.get('strength', 1.0)
 
-    color_cfg = world_configuration[world_configuration['color']]
+    color_input = world_configuration.get('color')
+    if not color_input:
+        return
+
+    color_cfg = world_configuration[color_input]
 
     if world_configuration['color'] == 'environment_texture':
         environment_texture_node = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")
@@ -358,8 +362,7 @@ def main():
     model_path = args.model_path
     N = args.number_of_renders
 
-    if cfg.get("seed") is not None:
-      random.seed(cfg["seed"])
+    random.seed(cfg.get("seed"))
 
     output_dir = args.output_directory
     os.makedirs(output_dir, exist_ok=True)
@@ -368,8 +371,8 @@ def main():
     clear_scene()
     import_model(model_path)
 
-    setup_world(cfg['world'])
-    setup_render_engine(cfg.get('render'))
+    if (world_configuration := cfg.get('world')):
+      setup_world(world_configuration)
 
     setup_render_engine(cfg.get('render'))
 

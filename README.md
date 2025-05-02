@@ -35,23 +35,26 @@ options:
   -h, --help         show this help message and exit
 ```
 
-0. Download [skull model](https://www.blenderkit.com/get-blenderkit/d8f85f94-2434-4d8e-ada7-00aeca2225f2/) asset from BlenderKit database directly to Blender.
-1. Prepare the model using Blender:
-	1. Remove useless text by deleting it from collection.
-	2. Snap the model to the (0,0,0), because the script assumes model is centered (see [this](https://www.youtube.com/watch?v=IL43HB-Oyh8) for reference).
-1. Export result as `male-skull.glb`.
-2. To generate one image into `output` directory use
+1. Export monkey mesh Suzanne from `blender` as `.glb` (or download it [here](https://sketchfab.com/3d-models/suzanne-blender-monkey-29a3463e8d314c8fbda620800019cfb9))
+1. To generate one image into `output` directory use
+
 	```sh
-	blender --background --python generate-batch.py -- male-skull.glb ./output
+	blender --background --python generate-batch.py -- suzanne.glb ./output
 	```
-3. See result in `output` directory
-	![preview-male-skull](./references/male-skull.png)
-4. To generate 20 images into `output` directory use
+
+1. See result in `output` directory
+
+	![preview](./references/suzanne.png)
+
+1. To generate 16 images from random locations into `output` directory use
+
 	```sh
-	blender --background --python generate-batch.py -- male-skull.glb ./output 20
+	blender --background --python generate-batch.py -- suzanne.glb ./output 16
 	```
-5. See result in `output` directory[^1]
-	![preview-male-skulls](./references/male-skulls.png)
+
+1. See result in `output` directory[^1]
+
+	![preview](./references/suzannes.png)
 
 ---
 ## Plugins

@@ -19,9 +19,9 @@ aperture_fstop    = 2.8
 mode = "random"
 
 [camera.location.random]
-r_min   = 1
-r_max   = 1
-inc_min = 0.0
+r_min   = 8
+r_max   = 8
+inc_min = 'math.pi / 4'
 inc_max = 'math.pi / 2'
 azi_min = 0.0
 azi_max = '2 * math.pi'
@@ -52,7 +52,7 @@ energy = 1.0
 [light.uniform]
 amount = 3
 radius = 10
-inc_start = 'math.pi / 8'
+inc_start = 'math.pi / 4'
 inc_stop = 'math.pi / 2'
 inc_step = 'math.pi / 2'
 
