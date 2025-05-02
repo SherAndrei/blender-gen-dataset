@@ -35,12 +35,10 @@ inc_start = 'math.nextafter(math.pi / 2, -math.inf)'
 inc_stop = 'math.pi / 2'
 inc_step = 'math.pi / 2'
 
-[light]
-energy   = 4.0
-radius = 10
-
 [world]
 strength = 1.0
+# color = "environment_texture"
+# color = "image_texture"
 
 [world.environment_texture]
 path = ""
@@ -48,6 +46,18 @@ path = ""
 [world.image_texture]
 path = ""
 extension = 'EXTEND'
+
+[light]
+mode = 'uniform'
+type = 'SUN'
+energy = 1.0
+
+[light.uniform]
+amount = 3
+radius = 10
+inc_start = 'math.pi / 8'
+inc_stop = 'math.pi / 2'
+inc_step = 'math.pi / 2'
 
 [render]
 resolution_x = 200

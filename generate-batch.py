@@ -87,34 +87,82 @@ def import_model(model_path):
     bpy.context.view_layer.update()
 
 
-def add_fixed_light(light_configuration):
-    """Evenly illuminate the object from six directions."""
+def safe_eval(expr: str) -> float:
+    from types import MappingProxyType
+    """Evaluate a numeric Python expression in a restricted namespace."""
+    allowed_names = MappingProxyType({"math": math, "pi": math.pi})
+    try:
+        value = eval(expr, {"__builtins__": {}}, allowed_names)
+    except Exception as exc:
+        raise argparse.ArgumentTypeError(f"Bad expression '{expr}': {exc}")
+    if not isinstance(value, (int, float)):
+        raise argparse.ArgumentTypeError(f"Expression '{expr}' did not return a number")
+    return float(value)
 
+
+def next_location_on_sphere(inc_start: float, inc_stop: float, inc_step: float, i: int, N: int):
+    if not (0 <= i < N):
+        raise ValueError("0 <= i < N must hold")
+    if not (0 <= inc_start < (math.pi / 2)):
+        raise ValueError("0 <= inc_start < (math.pi / 2) must hold")
+    if not (0 < inc_stop <= (math.pi / 2)):
+        raise ValueError("0 < inc_stop <= (math.pi / 2) must hold")
+    if not (inc_start < inc_stop):
+        raise ValueError("inc_start < inc_stop must hold")
+    if not (inc_step > 0):
+        raise ValueError("inc_step > 0 must hold")
+
+    # `ceil` to include band on `inc_start` position
+    n_bands = math.ceil((inc_stop - inc_start) / inc_step)
+    locations_per_slice = (N + n_bands - 1) // n_bands
+    current_slice = i // locations_per_slice
+    inc = inc_start + inc_step * current_slice
+    azi = (2 * math.pi * (i + 1)) / locations_per_slice
+    return inc, azi
+
+
+def spherical_to_cartesian(radius, inc, azi):
+    """Convert spherical coords to Cartesian (x,y,z)."""
+    x = radius * math.sin(inc) * math.cos(azi)
+    y = radius * math.sin(inc) * math.sin(azi)
+    z = radius * math.cos(inc)
+    return x, y, z
+
+
+def point_object_at(obj, target):
+    direction = target - obj.location
+    quat = direction.to_track_quat("-Z", "Y")
+    obj.rotation_euler = quat.to_euler()
+
+
+def setup_light(light_configuration, target):
+    light_type = light_configuration.get('type', 'SUN')
     energy = light_configuration.get('energy', 10)
-    # distance from origin for each sun lamp
-    radius = light_configuration.get('radius', 10.0)
+    mode = light_configuration.get('mode', 'uniform')
 
-    # Six cardinal directions
-    directions = [
-        (1,  0,  0), (-1,  0,  0),
-        (0,  1,  0), ( 0, -1,  0),
-        (0,  0,  1), ( 0,  0, -1),
-    ]
+    mode_cfg = light_configuration[mode]
+    if mode == 'uniform':
+        amount = mode_cfg.get('amount', 3)
+        radius = mode_cfg.get('radius', 10.0)
+        inc_start = safe_eval(mode_cfg.get('inc_start', 'math.pi / 8'))
+        inc_stop = safe_eval(mode_cfg.get('inc_stop', 'math.pi / 2'))
+        inc_step = safe_eval(mode_cfg.get('inc_step', 'math.pi / 2'))
 
-    for idx, dir_vec in enumerate(directions):
-        # Create a Sun lamp
-        ld = bpy.data.lights.new(name=f"EvenSun{idx}", type='SUN')
-        ld.energy = energy
-        lo = bpy.data.objects.new(name=f"EvenSun{idx}", object_data=ld)
+        for idx in range(amount):
+          ld = bpy.data.lights.new(name=f"EvenSun{idx}", type=light_type)
+          ld.energy = energy
+          lo = bpy.data.objects.new(name=f"EvenSun{idx}", object_data=ld)
 
-        # Position it out on the sphere
-        lo.location = [d * radius for d in dir_vec]
+          inc, azi = next_location_on_sphere(inc_start, inc_stop, inc_step, idx, amount)
+          lo.location = spherical_to_cartesian(radius, inc, azi)
 
-        # Rotate so its negative Z axis points toward the origin
-        rot = mathutils.Vector(dir_vec).to_track_quat('-Z', 'Y').to_euler()
-        lo.rotation_euler = rot
+          point_object_at(lo, target)
 
-        bpy.context.scene.collection.objects.link(lo)
+          bpy.context.scene.collection.objects.link(lo)
+
+        return
+
+    raise RuntimeError("unknown light mode")
 
 
 def setup_world(world_configuration):
@@ -209,9 +257,7 @@ def point_camera_at(cam_obj, target):
         obj: The Blender object to orient (e.g., camera).
         target: mathutils.Vector representing the target point.
     """
-    direction = target - cam_obj.location
-    quat = direction.to_track_quat("-Z", "Y")
-    cam_obj.rotation_euler = quat.to_euler()
+    point_object_at(cam_obj, target)
 
     if cam_obj.data.dof.use_dof:
       focus_distance = (target - cam_obj.location).length
@@ -230,54 +276,12 @@ def render_image(scene, output_filepath):
     bpy.ops.render.render(write_still=True)
 
 
-def spherical_to_cartesian(radius, inc, azi):
-    """Convert spherical coords to Cartesian (x,y,z)."""
-    x = radius * math.sin(inc) * math.cos(azi)
-    y = radius * math.sin(inc) * math.sin(azi)
-    z = radius * math.cos(inc)
-    return x, y, z
-
-
 def random_camera_location(camera_location_configuration):
     """Sample a random point on the upper hemisphere."""
     r = random.uniform(camera_location_configuration["r_min"], camera_location_configuration["r_max"])
     inc = random.uniform(camera_location_configuration["inc_min"], camera_location_configuration["inc_max"])
     azi = random.uniform(camera_location_configuration["azi_min"], camera_location_configuration["azi_max"])
     return spherical_to_cartesian(r, inc, azi)
-
-
-def next_location_on_sphere(inc_start: float, inc_stop: float, inc_step: float, i: int, N: int):
-    if not (0 <= i < N):
-        raise ValueError("0 <= i < N must hold")
-    if not (0 <= inc_start < (math.pi / 2)):
-        raise ValueError("0 <= inc_start < (math.pi / 2) must hold")
-    if not (0 < inc_stop <= (math.pi / 2)):
-        raise ValueError("0 < inc_stop <= (math.pi / 2) must hold")
-    if not (inc_start < inc_stop):
-        raise ValueError("inc_start < inc_stop must hold")
-    if not (inc_step > 0):
-        raise ValueError("inc_step > 0 must hold")
-
-    # `ceil` to include band on `inc_start` position
-    n_bands = math.ceil((inc_stop - inc_start) / inc_step)
-    locations_per_slice = (N + n_bands - 1) // n_bands
-    current_slice = i // locations_per_slice
-    inc = inc_start + inc_step * current_slice
-    azi = (2 * math.pi * (i + 1)) / locations_per_slice
-    return inc, azi
-
-
-def safe_eval(expr: str) -> float:
-    from types import MappingProxyType
-    """Evaluate a numeric Python expression in a restricted namespace."""
-    allowed_names = MappingProxyType({"math": math, "pi": math.pi})
-    try:
-        value = eval(expr, {"__builtins__": {}}, allowed_names)
-    except Exception as exc:
-        raise argparse.ArgumentTypeError(f"Bad expression '{expr}': {exc}")
-    if not isinstance(value, (int, float)):
-        raise argparse.ArgumentTypeError(f"Expression '{expr}' did not return a number")
-    return float(value)
 
 
 def uniform_camera_location(camera_location_configuration, i, N):
@@ -359,11 +363,14 @@ def main():
     setup_world(cfg['world'])
     setup_render_engine(cfg.get('render'))
 
-    if (light_configuration := cfg.get('light')):
-      add_fixed_light(light_configuration)
+    setup_render_engine(cfg.get('render'))
 
     # Assume the imported object is centered at origin.
     target = mathutils.Vector((0.0, 0.0, 0.0))
+
+    if (light_configuration := cfg.get('light')):
+      setup_light(light_configuration, target)
+
     scene = bpy.context.scene
 
     for plugin in plugins:
