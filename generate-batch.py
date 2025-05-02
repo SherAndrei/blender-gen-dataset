@@ -280,9 +280,15 @@ def render_image(scene, output_filepath):
 
 def random_camera_location(camera_location_configuration):
     """Sample a random point on the upper hemisphere."""
-    r = random.uniform(camera_location_configuration["r_min"], camera_location_configuration["r_max"])
-    inc = random.uniform(camera_location_configuration["inc_min"], camera_location_configuration["inc_max"])
-    azi = random.uniform(camera_location_configuration["azi_min"], camera_location_configuration["azi_max"])
+    r_min   = safe_eval(camera_location_configuration.get("r_min", 1))
+    r_max   = safe_eval(camera_location_configuration.get("r_max", 1))
+    inc_min = safe_eval(camera_location_configuration.get("inc_min", 0))
+    inc_max = safe_eval(camera_location_configuration.get("inc_max", 'math.pi/2'))
+    azi_min = safe_eval(camera_location_configuration.get("azi_min", 0))
+    azi_max = safe_eval(camera_location_configuration.get("azi_max", '2 * math.pi'))
+    r = random.uniform(r_min, r_max)
+    inc = random.uniform(inc_min, inc_max)
+    azi = random.uniform(azi_min, azi_max)
     return spherical_to_cartesian(r, inc, azi)
 
 

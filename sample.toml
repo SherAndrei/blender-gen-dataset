@@ -19,15 +19,12 @@ aperture_fstop    = 2.8
 mode = "random"
 
 [camera.location.random]
-# Radius range (from origin)
 r_min   = 1
 r_max   = 1
-# Inclination θ ∈ [0, π/2]
 inc_min = 0.0
-inc_max = 1.5707963267948966
-# Azimuth φ ∈ [0, 2π]
+inc_max = 'math.pi / 2'
 azi_min = 0.0
-azi_max = 6.283185307179586
+azi_max = '2 * math.pi'
 
 [camera.location.uniform]
 radius = 1
