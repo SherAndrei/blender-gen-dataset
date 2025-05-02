@@ -128,14 +128,26 @@ def setup_world(world_configuration):
     background_node = nodes['Background']
     background_node.inputs[1].default_value = world_configuration.get('strength', 1.0)
 
-    if world_configuration['color'] == 'environment_texture':
-        env = world_configuration['environment_texture']
+    color_cfg = world_configuration[world_configuration['color']]
 
+    if world_configuration['color'] == 'environment_texture':
         environment_texture_node = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")
-        image = bpy.data.images.load(env['path'])
+        image = bpy.data.images.load(color_cfg['path'])
         environment_texture_node.image = (image)
 
         world.node_tree.links.new(environment_texture_node.outputs['Color'], background_node.inputs['Color'])
+
+    if world_configuration['color'] == 'image_texture':
+        background_image_node = world.node_tree.nodes.new(type="ShaderNodeTexImage")
+        image = bpy.data.images.load(color_cfg['path'])
+        background_image_node.image = (image)
+        background_image_node.extension = 'EXTEND'
+
+        # align background image to the window
+        texture_coordinate = world.node_tree.nodes.new(type="ShaderNodeTexCoord")
+        world.node_tree.links.new(texture_coordinate.outputs['Window'], background_image_node.inputs['Vector'])
+
+        world.node_tree.links.new(background_image_node.outputs['Color'], background_node.inputs['Color'])
 
 
 def setup_render_engine(render_configuration):

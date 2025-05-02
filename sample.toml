@@ -43,6 +43,9 @@ strength = 1.0
 [world.environment_texture]
 path = ""
 
+[world.image_texture]
+path = ""
+
 [render]
 resolution_x = 200
 resolution_y = 200
