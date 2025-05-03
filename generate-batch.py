@@ -188,12 +188,17 @@ def setup_world(world_configuration):
 
     color_cfg = world_configuration[color_input]
 
+    if color_input == 'default':
+        background_node.inputs[0].default_value = tuple(color_cfg['RGBA'])
+        return
+
     if color_input == 'environment_texture':
         environment_texture_node = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")
         image = bpy.data.images.load(color_cfg['path'])
         environment_texture_node.image = (image)
 
         world.node_tree.links.new(environment_texture_node.outputs['Color'], background_node.inputs['Color'])
+        return
 
     if color_input == 'image_texture':
         background_image_node = world.node_tree.nodes.new(type="ShaderNodeTexImage")
@@ -206,6 +211,7 @@ def setup_world(world_configuration):
         world.node_tree.links.new(texture_coordinate.outputs['Window'], background_image_node.inputs['Vector'])
 
         world.node_tree.links.new(background_image_node.outputs['Color'], background_node.inputs['Color'])
+        return
 
 
 def setup_render_engine(render_configuration):
