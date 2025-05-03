@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import datetime
+import logging
 import math
 import os
 import random
@@ -333,13 +334,12 @@ def load_config(path):
     try:
         with open(path, "rb") as f:
             return tomllib.load(f)
-    except Exception as inst:
-        print(inst)
-        print("Using default values instead of 'config.toml'")
+    except OSError:
+        logging.exception("Failed to open 'config.toml', using default values instead")
         return {}
 
 
-def discover_plugins(dirname):
+def discover_plugins(dirname, cfg):
     """ Discover the plugin classes contained in Python files, given a
         directory name to scan. Return a list of plugin classes.
     """
@@ -361,13 +361,22 @@ def discover_plugins(dirname):
         print(f"No module named {dirname!r} found, skip importing.")
         return list()
     plugins = import_module_from_spec(plugins)
+    registry = getattr(plugins, 'IPluginRegistry')
 
     import pkgutil
+    plugins_instances = []
     for finder, name, ispkg in pkgutil.iter_modules([dirname]):
         # since `plugins` package is already imported and is in sys.modules
         # Python can import its subpackages
         importlib.import_module(f"plugins.{name}")
-    return getattr(plugins, 'IPluginRegistry').plugins
+        new_plugin_class = registry.plugins[-1]
+        try:
+            new_plugin_instance = new_plugin_class(cfg)
+            plugins_instances.append(new_plugin_instance)
+        except Exception:
+            logging.exception(f"Failed to init {name}, skipping")
+
+    return plugins_instances
 
 
 def main(args):
@@ -382,7 +391,7 @@ def main(args):
     random.seed(cfg.get("seed"))
 
     os.makedirs(output_dir, exist_ok=True)
-    plugins = [P(cfg) for P in discover_plugins('plugins')]
+    plugins = discover_plugins('plugins', cfg)
 
     clear_scene()
     import_model(model_path)
