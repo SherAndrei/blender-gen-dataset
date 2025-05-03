@@ -142,7 +142,10 @@ def setup_light(light_configuration, target):
     energy = light_configuration.get('energy', 1.0)
     mode = light_configuration.get('mode', 'uniform')
 
-    mode_cfg = light_configuration[mode]
+    if not mode:
+        return
+
+    mode_cfg = light_configuration.get(mode, {})
     if mode == 'uniform':
         amount = mode_cfg.get('amount', 3)
         radius = mode_cfg.get('radius', 10.0)
@@ -184,18 +187,18 @@ def setup_world(world_configuration):
 
     color_cfg = world_configuration[color_input]
 
-    if world_configuration['color'] == 'environment_texture':
+    if color_input == 'environment_texture':
         environment_texture_node = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")
         image = bpy.data.images.load(color_cfg['path'])
         environment_texture_node.image = (image)
 
         world.node_tree.links.new(environment_texture_node.outputs['Color'], background_node.inputs['Color'])
 
-    if world_configuration['color'] == 'image_texture':
+    if color_input == 'image_texture':
         background_image_node = world.node_tree.nodes.new(type="ShaderNodeTexImage")
         image = bpy.data.images.load(color_cfg['path'])
         background_image_node.image = (image)
-        background_image_node.extension = color_cfg['extension']
+        background_image_node.extension = color_cfg.get('extension', 'CLIP')
 
         # align background image to the window
         texture_coordinate = world.node_tree.nodes.new(type="ShaderNodeTexCoord")
@@ -207,31 +210,37 @@ def setup_world(world_configuration):
 def setup_render_engine(render_configuration):
     """Set render engine and configure some settings."""
     scene = bpy.context.scene
-    scene.render.resolution_x = render_configuration['resolution_x']
-    scene.render.resolution_y = render_configuration['resolution_y']
+    scene.render.resolution_x = render_configuration.get('resolution_x', 200)
+    scene.render.resolution_y = render_configuration.get('resolution_y', 200)
     scene.render.resolution_percentage = 100
-    if render_configuration["engine"] == 'cycles':
+    engine = render_configuration.get('engine', 'cycles')
+    engine_cfg = render_configuration.get(engine, {})
+    if engine == 'cycles':
         scene.render.engine = "CYCLES"
-        scene.cycles.samples = render_configuration["samples"]
-        scene.cycles.use_denoising = render_configuration['cycles']["use_denoising"]
-        scene.cycles.use_adaptive_sampling = render_configuration['cycles']["use_adaptive_sampling"]
-        scene.cycles.max_bounces = render_configuration['cycles']['max_bounces']
-        scene.cycles.transparent_max_bounces = render_configuration['cycles']['transparent_max_bounces']
-        scene.cycles.diffuse_bounces = render_configuration['cycles']['diffuse_bounces']
-        scene.cycles.glossy_bounces = render_configuration['cycles']['glossy_bounces']
-        scene.cycles.transmission_bounces = render_configuration['cycles']['transmission_bounces']
-        scene.cycles.volume_bounces = render_configuration['cycles']['volume_bounces']
-    elif render_configuration['engine'] == 'eevee':
+        scene.cycles.samples = render_configuration.get("samples", 1024)
+        scene.cycles.use_denoising = engine_cfg.get("use_denoising", True)
+        scene.cycles.use_adaptive_sampling = engine_cfg.get("use_adaptive_sampling", True)
+        scene.cycles.max_bounces = engine_cfg.get('max_bounces', 1024)
+        scene.cycles.transparent_max_bounces = engine_cfg.get('transparent_max_bounces', 1024)
+        scene.cycles.diffuse_bounces = engine_cfg.get('diffuse_bounces', 1024)
+        scene.cycles.glossy_bounces = engine_cfg.get('glossy_bounces', 1024)
+        scene.cycles.transmission_bounces = engine_cfg.get('transmission_bounces', 1024)
+        scene.cycles.volume_bounces = engine_cfg.get('volume_bounces', 1024)
+        return
+    if engine == 'eevee':
         if bpy.app.version > (4, 1, 0):
           scene.render.engine = "BLENDER_EEVEE_NEXT"
-          scene.eevee.use_raytracing =  render_configuration['eevee']["use_raytracing"]
+          scene.eevee.use_raytracing =  engine_cfg.get("use_raytracing", False)
         else:
           scene.render.engine = "BLENDER_EEVEE"
-          scene.eevee.use_ssr = render_configuration['eevee']["use_ssr"]
+          scene.eevee.use_ssr = engine_cfg.get("use_ssr", False)
 
-        scene.eevee.taa_render_samples = render_configuration["samples"]
-        scene.eevee.use_gtao = render_configuration['eevee']["use_gtao"]
-        scene.eevee.shadow_pool_size = render_configuration['eevee']["shadow_pool_size"]
+        scene.eevee.taa_render_samples = render_configuration.get("samples", False)
+        scene.eevee.use_gtao = engine_cfg.get("use_gtao", False)
+        scene.eevee.shadow_pool_size = engine_cfg.get("shadow_pool_size", 1024)
+        return
+
+    raise RuntimeError("unknown engine")
 
 
 def create_camera(camera_configuration):
@@ -241,16 +250,19 @@ def create_camera(camera_configuration):
     bpy.context.scene.collection.objects.link(cam_obj)
 
     cam_obj.data.lens_unit = "MILLIMETERS"
-    cam_obj.data.lens = camera_configuration['lens'].get('focal_length', 50)
-    cam_obj.data.clip_start = camera_configuration['lens'].get('clip_start', 0.1)
-    cam_obj.data.clip_end = camera_configuration['lens'].get('clip_end', 1000)
+    lens_cfg = camera_configuration.get('lens', {})
+    cam_obj.data.lens = lens_cfg.get('focal_length', 50)
+    cam_obj.data.clip_start = lens_cfg.get('clip_start', 0.1)
+    cam_obj.data.clip_end = lens_cfg.get('clip_end', 1000)
 
-    cam_obj.data.sensor_width = camera_configuration.get('sensor_width')
-    cam_obj.data.sensor_height = camera_configuration.get('sensor_height')
+    # APS-C Canon
+    cam_obj.data.sensor_width = camera_configuration.get('sensor_width', 22.3)
+    cam_obj.data.sensor_height = camera_configuration.get('sensor_height', 14.9)
 
-    if camera_configuration['use_dof']:
+    if camera_configuration.get('use_dof', False):
       cam_obj.data.dof.use_dof = True
-      cam_obj.data.dof.aperture_fstop = camera_configuration['dof']['aperture_fstop']
+      dof_cfg = camera_configuration.get('dof', {})
+      cam_obj.data.dof.aperture_fstop = dof_cfg.get('aperture_fstop', 2.8)
 
     return cam_obj
 
@@ -284,12 +296,12 @@ def render_image(scene, output_filepath):
 
 def random_camera_location(camera_location_configuration):
     """Sample a random point on the upper hemisphere."""
-    r_min   = safe_eval(camera_location_configuration.get("r_min", 1))
-    r_max   = safe_eval(camera_location_configuration.get("r_max", 1))
+    r_min   = safe_eval(camera_location_configuration.get("r_min", 10))
+    r_max   = safe_eval(camera_location_configuration.get("r_max", 10))
     inc_min = safe_eval(camera_location_configuration.get("inc_min", 0))
-    inc_max = safe_eval(camera_location_configuration.get("inc_max", 'math.pi/2'))
+    inc_max = safe_eval(camera_location_configuration.get("inc_max", math.pi/2))
     azi_min = safe_eval(camera_location_configuration.get("azi_min", 0))
-    azi_max = safe_eval(camera_location_configuration.get("azi_max", '2 * math.pi'))
+    azi_max = safe_eval(camera_location_configuration.get("azi_max", 2 * math.pi))
     r = random.uniform(r_min, r_max)
     inc = random.uniform(inc_min, inc_max)
     azi = random.uniform(azi_min, azi_max)
@@ -297,29 +309,34 @@ def random_camera_location(camera_location_configuration):
 
 
 def uniform_camera_location(camera_location_configuration, i, N):
-    inc_start = safe_eval(camera_location_configuration.get('inc_start', 'math.pi / 4'))
-    inc_stop = safe_eval(camera_location_configuration.get('inc_stop', 'math.pi / 2'))
-    inc_step = safe_eval(camera_location_configuration.get('inc_step', 'math.pi / 2'))
-    radius = camera_location_configuration.get("radius", 1.0)
+    inc_start = safe_eval(camera_location_configuration.get('inc_start', math.pi / 4))
+    inc_stop = safe_eval(camera_location_configuration.get('inc_stop', math.pi / 2))
+    inc_step = safe_eval(camera_location_configuration.get('inc_step', math.pi / 2))
+    radius = camera_location_configuration.get("radius", 10)
     inc, azi = next_location_on_sphere(inc_start, inc_stop, inc_step, i, N)
     return spherical_to_cartesian(radius, inc, azi)
 
 
 def get_camera_location(camera_location_configuration, i, N):
-    mode = camera_location_configuration.get("mode", "uniform")
+    mode = camera_location_configuration.get("mode", "random")
 
     if mode == "random":
-      return random_camera_location(camera_location_configuration[mode])
+      return random_camera_location(camera_location_configuration.get(mode, {}))
     if mode == "uniform":
-      return uniform_camera_location(camera_location_configuration[mode], i, N)
+      return uniform_camera_location(camera_location_configuration.get(mode, {}), i, N)
 
     raise RuntimeError("unknown camera location mode")
 
 
 def load_config(path):
     """Load and return the TOML config as a dict."""
-    with open(path, "rb") as f:
-        return tomllib.load(f)
+    try:
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+    except Exception as inst:
+        print(inst)
+        print("Using default values instead of 'config.toml'")
+        return {}
 
 
 def discover_plugins(dirname):
@@ -355,7 +372,8 @@ def discover_plugins(dirname):
 
 def main(args):
     """Main function."""
-    cfg = load_config('config.toml')
+    config_file = 'config.toml'
+    cfg = load_config(config_file)
 
     model_path = args['model_path']
     N = args['number_of_renders']
@@ -369,16 +387,14 @@ def main(args):
     clear_scene()
     import_model(model_path)
 
-    if (world_configuration := cfg.get('world')):
-      setup_world(world_configuration)
+    setup_world(cfg.get('world', {}))
 
-    setup_render_engine(cfg.get('render'))
+    setup_render_engine(cfg.get('render', {}))
 
     # Assume the imported object is centered at origin.
     target = mathutils.Vector((0.0, 0.0, 0.0))
 
-    if (light_configuration := cfg.get('light')):
-      setup_light(light_configuration, target)
+    setup_light(cfg.get('light', {}), target)
 
     scene = bpy.context.scene
 
@@ -388,8 +404,9 @@ def main(args):
     start_time = datetime.datetime.now()
 
     for i in range(N):
-        cam_obj = create_camera(cfg['camera'])
-        cam_obj.location = get_camera_location(cfg["camera"]["location"], i, N)
+        camera_cfg = cfg.get('camera', {})
+        cam_obj = create_camera(camera_cfg)
+        cam_obj.location = get_camera_location(camera_cfg.get("location", {}), i, N)
         point_camera_at(cam_obj, target)
 
         scene.camera = cam_obj
@@ -419,7 +436,8 @@ def main(args):
     for plugin in plugins:
         plugin.on_rendering_completed(scene)
 
-    shutil.copy2("config.toml", output_dir)
+    if os.path.isfile(config_file):
+        shutil.copy2(config_file, output_dir)
 
 
 if __name__ == "__main__":
