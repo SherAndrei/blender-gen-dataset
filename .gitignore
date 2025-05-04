@@ -4,11 +4,16 @@
 *.obj
 *.fbx
 *.glTF
+*.blend
+*.ply
+*.jpg
 
 # output format
 *.png
 *.npz
+*.npy
 *.csv
+*.hdr
 
 # script config file
 config.toml
