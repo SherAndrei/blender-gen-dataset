@@ -59,13 +59,7 @@ options:
 ---
 ## Plugins
 
-This script provides extensibility via plugins. Plugins allow the user to configure the world without changing the script itself. Plugin infrastructure is implemented by referencing [this](https://eli.thegreenplace.net/2012/08/07/fundamental-concepts-of-plugin-infrastructures) article.
-
-Plugin is user defined interface, which complies with interface defined in [`IPlugin`](./plugins/__init__.py). To add new plugin simply create new `.py` file inside the `plugins` directory. To remove one plugin from being executed move the source code out of the `plugins` directory.
-
-See examples, such as mask, normal and depth map in [`plugins`](./plugins/).
-
-![diamonds](./references/diamonds.png)
+See [PLUGINS.md](PLUGINS.md).
 
 ---
 
@@ -101,4 +95,4 @@ sudo mount -t tmpfs -o size=1024M tmpfs /media/generatormeta/
 ```
 * On Windows using [ImDisk](https://imdisktoolkit.com/).
 
-[^1]: this grid was made with [this](./scripts/grid)
+[^1]: this grid was made with [this](scripts/grid/)

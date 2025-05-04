@@ -346,43 +346,67 @@ def load_config(path):
 
 
 def discover_plugins(dirname, cfg):
-    """ Discover the plugin classes contained in Python files, given a
-        directory name to scan. Return a list of plugin classes.
     """
+    Discover and instantiate plugin classes from the given directory.
+
+    Scans `dirname` for Python modules, then for each module whose name
+    appears in cfg["plugins"]["enabled"], imports it, locates the most
+    recently registered IPlugin subclass, and returns an instance of it.
+
+    Args:
+        dirname (str): Path (relative or absolute) to the plugins folder.
+        cfg (dict): Full configuration dict (e.g. from config.toml). Must contain:
+            cfg["plugins"]["enabled"] - a list of plugin module names to load.
+
+    Returns:
+        List[IPlugin]: instances of each enabled plugin.
+    """
+    import sys
+    import logging
     import importlib
     import importlib.util
     import importlib.machinery
+
+    # Standard `import` does not work, since the script is not in path.
+    # Source: https://docs.python.org/3.11/library/importlib.html#importing-a-source-file-directly
     def import_module_from_spec(spec):
-        """Import module from found spec.
-           Standard `import` does not work, since the script is not in path.
-           Source: https://docs.python.org/3.11/library/importlib.html#importing-a-source-file-directly
-        """
         module = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = module
         spec.loader.exec_module(module)
         return module
 
-    plugins = importlib.machinery.PathFinder().find_spec(dirname, __file__)
-    if plugins is None:
-        print(f"No module named {dirname!r} found, skip importing.")
-        return list()
-    plugins = import_module_from_spec(plugins)
-    registry = getattr(plugins, 'IPluginRegistry')
+    # locate and load the plugins package
+    spec = importlib.machinery.PathFinder().find_spec(dirname, __file__)
+    if spec is None:
+        print(f"No module named {dirname!r} found, skipping plugins.")
+        return []
+
+    pkg = import_module_from_spec(spec)
+    registry = getattr(pkg, 'IPluginRegistry')
+
+    # read enabled list from cfg
+    plugins_cfg     = cfg.get("plugins", {})
+    enabled_plugins = plugins_cfg.get("enabled", [])
+    print(f"Discovered config for plugins: {enabled_plugins!r}")
 
     import pkgutil
-    plugins_instances = []
-    for finder, name, ispkg in pkgutil.iter_modules([dirname]):
-        # since `plugins` package is already imported and is in sys.modules
-        # Python can import its subpackages
-        importlib.import_module(f"plugins.{name}")
-        new_plugin_class = registry.plugins[-1]
-        try:
-            new_plugin_instance = new_plugin_class(cfg)
-            plugins_instances.append(new_plugin_instance)
-        except Exception:
-            logging.exception(f"Failed to init {name}, skipping")
+    instances = []
+    for _, name, _ in pkgutil.iter_modules([dirname]):
+        if name not in enabled_plugins:
+            logging.info(f"Plugin {name!r} is not enabled, skipping.")
+            continue
 
-    return plugins_instances
+        print(f"Loading plugin module: {name!r}")
+        importlib.import_module(f"{dirname}.{name}")
+
+        try:
+            plugin_cls = registry.plugins[-1]
+            instance   = plugin_cls(cfg)
+            instances.append(instance)
+        except Exception:
+            logging.exception(f"Failed to initialize plugin {name!r}, skipping.")
+
+    return instances
 
 
 def main(args):
