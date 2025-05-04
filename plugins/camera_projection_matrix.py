@@ -6,13 +6,6 @@ from plugins import IPlugin
 class CameraProjectionMatrix(IPlugin):
     """For each camera view, save the 3 by 4 projection matrix as JSON."""
 
-    def __init__(self, cfg):
-        super().__init__(cfg)
-
-    def on_scene_created(self, scene, output_path):
-        # nothing to do at scene setup
-        pass
-
     def on_camera_created(self, scene, camera_obj, index, output_path):
         # source: https://docs.blender.org/api/current/bpy.types.Object.html#bpy.types.Object.calc_matrix_camera
         depsgraph = bpy.context.evaluated_depsgraph_get()

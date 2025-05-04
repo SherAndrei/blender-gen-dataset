@@ -14,8 +14,9 @@ class IPlugin(object, metaclass=IPluginRegistry):
     """ Plugin classes inherit from IPlugin. The methods below can be
         implemented to provide services.
     """
-    def __init__(self, cfg):
-        super().__init__()
+
+    def __init__(self, user_configuration, user_plugin_configuration):
+        pass
 
     def on_scene_created(self, scene, output_path):
         pass

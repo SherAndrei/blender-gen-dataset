@@ -5,8 +5,8 @@ class Mask(IPlugin):
        Resulting mask is saved in `output` directory with name 'AAA_mask_BBB.png',
        where AAA stands for index in the dataset and BBB stands for frame number.
     """
-    def __init__(self, cfg):
-        super().__init__(cfg)
+
+    def __init__(self, cfg, plugin_cfg):
         self._rl = None
         self._last_input_socket = None
 

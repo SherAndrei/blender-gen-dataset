@@ -406,7 +406,7 @@ def discover_plugins(dirname, cfg):
 
         try:
             plugin_cls = registry.plugins[-1]
-            instance   = plugin_cls(cfg)
+            instance   = plugin_cls(cfg, plugins_cfg.get(name, {}))
             instances.append(instance)
         except Exception:
             logging.exception(f"Failed to initialize plugin {name!r}, skipping.")
