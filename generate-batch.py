@@ -54,6 +54,11 @@ def parse_args():
         nargs='?',
         help="Number of images to generate per run.",
     )
+    parser.add_argument(
+        "--dump-config",
+        action="store_true",
+        help="Dump user configuration as python dict and exit."
+    )
     return vars(parser.parse_args(argv))
 
 
@@ -413,6 +418,10 @@ def main(args):
     """Main function."""
     config_file = 'config.toml'
     cfg = load_config(config_file)
+
+    if args['dump_config']:
+        print(cfg)
+        return
 
     model_path = args['model_path']
     N = args['number_of_renders']
