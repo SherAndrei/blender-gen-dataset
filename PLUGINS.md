@@ -51,6 +51,7 @@ class MyPlugin(IPlugin):
 | **normal**                   | Saves **normal maps** (world space) for each view.                                                          | `###_normal_###.png`                 |
 | **depth**                    | Writes **Z‑depth** maps.                                                                       | `###_depth_###.png`                  |
 | **camera_projection_matrix**               | Stores the 3 × 4 **projection matrix** per image.                | `###_camera_projection_matrix.json` |
+| **normalization\_matrix**     | Computes matrix that maps the scene’s bounding‑box into the unit sphere (IDR convention).         | `normalization_matrix.json`                     |
 
 ## Examples
 
