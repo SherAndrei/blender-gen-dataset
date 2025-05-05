@@ -1,0 +1,18 @@
+[project]
+name = "to-idr-dataset"
+version = "0.1.0"
+description = "Convert output from generate_batches.py to IDR compatible dataset"
+authors = [
+    {name = "SherAndrei",email = "welldryus@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy (>=2.2.5,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
