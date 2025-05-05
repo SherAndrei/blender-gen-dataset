@@ -54,6 +54,7 @@ class MyPlugin(IPlugin):
 | **normalization\_matrix**     | Computes matrix that maps the scene’s bounding‑box into the unit sphere (IDR convention).         | `normalization_matrix.json`                     |
 | **masked**                   | Creates transparent‑background RGB images where the object is retained and all other pixels are α=0.           | `###_masked_###.png`                 |
 | **bounding\_box**            | Saves the scene **bounding box** and an initial voxel size to `bbox.txt`; supports regex‑based object exclusion. | `bbox.txt`                          |
+| **camera\_intrinsics**       | Writes compact 11‑value `intrinsics.txt` representing the 4x4 camera intrinsic matrix.                         | `intrinsics.txt`                     |
 
 ## Examples
 
