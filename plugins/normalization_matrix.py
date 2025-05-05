@@ -1,6 +1,8 @@
 import json
+import logging
 import math
 import os
+import re
 
 from plugins import IPlugin
 
@@ -15,11 +17,14 @@ class NormalizationMatrix(IPlugin):
     def on_scene_created(self, scene, output_path):
         min_x = min_y = min_z =  float('inf')
         max_x = max_y = max_z = -float('inf')
+        found = False
 
-        import re
         for obj in scene.objects:
             if re.search(obj.name, self._exclude):
+                logging.info(f"[NormalizationMatrix] skip {obj.name} (matches exclude_regex)")
                 continue
+
+            found = True
             mat = obj.matrix_world
             for corner in obj.bound_box:
                 co = mat @ mathutils.Vector(corner)
@@ -29,6 +34,10 @@ class NormalizationMatrix(IPlugin):
                 max_x = max(co.x, max_x)
                 max_y = max(co.y, max_y)
                 max_z = max(co.z, max_z)
+
+        if not found:
+            logging.warning("[NormalizationMatrix] no valid mesh objects found - normalization_matrix.json not written")
+            return
 
         hx = (max_x - min_x) / 2.0
         hy = (max_y - min_y) / 2.0
