@@ -247,6 +247,20 @@ def setup_render_engine(render_configuration):
         scene.cycles.glossy_bounces = engine_cfg.get('glossy_bounces', 1024)
         scene.cycles.transmission_bounces = engine_cfg.get('transmission_bounces', 1024)
         scene.cycles.volume_bounces = engine_cfg.get('volume_bounces', 1024)
+        scene.cycles.device = engine_cfg.get("device", "GPU")
+
+        if scene.cycles.device == "GPU":
+            # Edit -> Preferences -> Add-ons -> "Cycles Render Engine" -> Preferences
+            cycles_preferences = bpy.context.preferences.addons["cycles"].preferences
+            # source: https://blender.stackexchange.com/a/196702/236879
+            cycles_preferences.compute_device_type = engine_cfg.get('compute_device_type', "CUDA")
+
+            # get_devices() to let Blender detect GPU device
+            cycles_preferences.get_devices()
+            print(cycles_preferences.compute_device_type)
+            for d in cycles_preferences.devices:
+                d["use"] = 1 # Using all devices, include GPU and CPU
+                print(d["name"], d["use"])
         return
     if engine == 'eevee':
         if bpy.app.version > (4, 1, 0):
