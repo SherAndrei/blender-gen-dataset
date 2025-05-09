@@ -17,7 +17,10 @@ class Mask(plugins.IPlugin, plugins.RenderLayerToFileOutputMixin):
 
         rl_index_output_socket = rl.outputs['IndexOB']
 
-        format_cfg = self.plugin_cfg.get("format", {})
+        default_grayscale = {
+            "color_mode": "BW"
+        }
+        format_cfg = self.plugin_cfg.get("format", default_grayscale)
         file_out = self.create_file_output_node(scene, output_path, "mask", format_cfg)
         scene.node_tree.links.new(rl_index_output_socket, file_out.inputs[0])
 
