@@ -234,6 +234,8 @@ def setup_render_engine(render_configuration):
     scene.render.image_settings.compression = image_settings.get("compression", 15)
     scene.render.image_settings.quality = image_settings.get("quality", 90)
 
+    scene.render.use_persistent_data = render_configuration.get("use_persistent_data", False)
+
     engine = render_configuration.get('engine', 'cycles')
     engine_cfg = render_configuration.get(engine, {})
     if engine == 'cycles':
