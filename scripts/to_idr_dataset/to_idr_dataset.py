@@ -63,11 +63,10 @@ def collect_files(in_dir: Path):
             table.setdefault(idx, {})['proj'] = f
     return table
 
-def load_projection(json_path: Path) -> np.ndarray:
-    with open(json_path, "r") as f:
-        mat = np.array(json.load(f), dtype=np.float64)
-    if mat.shape != (3,4):
-        raise ValueError(f"{json_path} is not a 3×4 matrix")
+def load_projection(path: Path) -> np.ndarray:
+    mat = np.loadtxt(path, dtype=np.float64)
+    if mat.shape != (3, 4):
+        raise ValueError(f"{path} is not a 3x4 matrix")
     # lift to 4×4 world_mat
     world_mat = np.zeros((4,4), dtype=np.float64)
     world_mat[:3,:] = mat

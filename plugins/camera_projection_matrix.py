@@ -1,5 +1,4 @@
 import os
-import json
 import bpy
 from plugins import IPlugin
 
@@ -28,7 +27,7 @@ class CameraProjectionMatrix(IPlugin):
             [mat4[2][0], mat4[2][1], mat4[2][2], mat4[2][3]],
         ]
 
-        fname = f"{index:03d}_camera_projection_matrix.json"
-        outpath = os.path.join(output_path, fname)
-        with open(outpath, 'w') as f:
-            json.dump(proj3x4, f, indent=None)
+        txt = "\n".join(" ".join(f"{v:.10f}" for v in row) for row in proj3x4)
+        out_path = os.path.join(output_path, f"{index:03d}_camera_projection_matrix.txt")
+        with open(out_path, "w") as f:
+            f.write(txt)

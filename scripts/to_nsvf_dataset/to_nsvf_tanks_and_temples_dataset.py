@@ -82,12 +82,11 @@ def convert_intrinsics(path: Path) -> np.ndarray:
     return K4
 
 
-def load_projection(json_path: Path) -> np.ndarray:
+def load_projection(path: Path) -> np.ndarray:
     """3x4 -> 4x4 matrix."""
-    with open(json_path, "r") as f:
-        mat = np.array(json.load(f), dtype=np.float64)
+    mat = np.loadtxt(path, dtype=np.float64)
     if mat.shape != (3, 4):
-        raise ValueError(f"{json_path} does not hold a 3x4 matrix")
+        raise ValueError(f"{path} does not hold a 3x4 matrix")
     pose = np.eye(4, dtype=np.float64)
     pose[:3, :] = mat
     return pose

@@ -50,7 +50,7 @@ class MyPlugin(IPlugin):
 | **mask**                     | Generates an object **mask** using Object‑Index pass.                                                       | `###_mask_###.png`                   |
 | **normal**                   | Saves **normal maps** (world space) for each view.                                                          | `###_normal_###.png`                 |
 | **depth**                    | Writes **Z‑depth** maps.                                                                       | `###_depth_###.png`                  |
-| **camera_projection_matrix**               | Stores the 3 × 4 **projection matrix** per image.                | `###_camera_projection_matrix.json` |
+| **camera_projection_matrix**               | Stores the 3 × 4 **projection matrix** per image.                | `###_camera_projection_matrix.txt` |
 | **normalization\_matrix**     | Computes matrix that maps the scene’s bounding‑box into the unit sphere (IDR convention).         | `normalization_matrix.json`                     |
 | **masked**                   | Creates transparent‑background RGB images where the object is retained and all other pixels are α=0.           | `###_masked_###.png`                 |
 | **bounding\_box**            | Saves the scene **bounding box** and an initial voxel size to `bbox.txt`; supports regex‑based object exclusion. | `bounding_box.txt`                          |
