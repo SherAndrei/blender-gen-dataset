@@ -488,6 +488,9 @@ def main(args):
         point_camera_at(cam_obj, target)
 
         scene.camera = cam_obj
+        # update view layer here so that changes in camera could take place
+        # source: https://blender.stackexchange.com/a/142265/236879
+        bpy.context.view_layer.update()
 
         for plugin in plugins:
             plugin.on_camera_created(scene, cam_obj, i, output_dir)
