@@ -59,6 +59,11 @@ def parse_args():
         action="store_true",
         help="Dump user configuration as python dict and exit."
     )
+    parser.add_argument(
+        "--skip-render",
+        action="store_true",
+        help="Setup everything and skip render."
+    )
     return vars(parser.parse_args(argv))
 
 
@@ -487,13 +492,14 @@ def main(args):
         for plugin in plugins:
             plugin.on_camera_created(scene, cam_obj, i, output_dir)
 
-        image_filename = f"{i:03d}_render.png"
-        output_filepath = os.path.join(output_dir, image_filename)
-        print(f"Rendering image {i+1}/{N} to {output_filepath}...")
-        render_image(scene, output_filepath)
+        if not args["skip_render"]:
+            image_filename = f"{i:03d}_render.png"
+            output_filepath = os.path.join(output_dir, image_filename)
+            print(f"Rendering image {i+1}/{N} to {output_filepath}...")
+            render_image(scene, output_filepath)
 
-        for plugin in plugins:
-            plugin.on_another_render_completed(scene, cam_obj, i, output_dir)
+            for plugin in plugins:
+                plugin.on_another_render_completed(scene, cam_obj, i, output_dir)
 
         camera = cam_obj.data
         bpy.data.objects.remove(cam_obj, do_unlink=True)
