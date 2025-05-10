@@ -1,96 +1,63 @@
 """
-Intrinsics plugin
-=================
-Writes *camera_intrinsics.txt* (11 numbers) once per render batch.
+Camera-intrinsics plugin
+========================
+Writes **camera_intrinsics.txt** once per batch.
 
-Why store only 11 values?
--------------------------
-For a pin-hole camera with square pixels, zero skew and no lens distortion
-the 4x4 intrinsic matrix
+Format
+------
+Four lines, four space-separated values each 0 a full 4 x 4 intrinsic matrix:
 
-       ┌ fx  0   cx  0 ┐
-  K4 = │ 0   fx  cy  0 │
-       │ 0   0   1   0 │
-       └ 0   0   0   1 ┘
+    fx  0   cx  0
+    0   fy  cy  0
+    0   0   1   0
+    0   0   0   1
 
-contains many constant zeros and ones. We therefore save only what can vary:
-
-1 - 3 l**fx,lcx, cy**   (focal length in pixels and principal point)
-4      zero (unused z-shift)
-5 - 7  zeros for distortion coefficients *(k1, k2, p1)*
-8      zero (reserved)
-9      **1.0** (K4[2, 2])
-10-11  **H, W** - image height and width in pixels
-
-The file layout is thus:
-
-```
-
-fx cx cy 0
-0 0 0
-0
-1
-H W
-
-````
-
-Re-creating the full 4x4 K4
------------------------------
-
-```python
-import numpy as np
-
-vals = np.loadtxt("camera_intrinsics.txt").flatten()
-fx, cx, cy = vals[:3]
-H, W       = vals[-2:]
-
-K = np.array([[fx, 0,  cx],
-              [0,  fx, cy],
-              [0,  0,   1]], dtype=np.float32)
-
-K4 = np.eye(4, dtype=np.float32)
-K4[:3, :3] = K
-```
-
+Assumptions
+-----------
+* Zero skew and no lens distortion
+* Intrinsics are the same for every rendered view
 """
 
 import os
 from plugins import IPlugin
 
 class CameraIntrinsics(IPlugin):
-    """Generate camera_intrinsics.txt once - after the first camera appears."""
+    """Generate a 4x4 intrinsic matrix and write camera_intrinsics.txt."""
 
-    def __init__(self, cfg, plugin_cfg):
+    def __init__(self, user_cfg, user_plugin_cfg):
+        super().__init__(user_cfg, user_plugin_cfg)
         self._written = False
 
     def on_camera_created(self, scene, camera_obj, index, output_path):
+        # write only once – when the first camera is spawned
         if self._written:
             return
 
-        cam   = camera_obj.data
-        rend  = scene.render
+        cam  = camera_obj.data
+        rend = scene.render
 
-        # Actual render resolution (takes percentage slider into account)
+        # Effective resolution (honours percentage slider)
         W = rend.resolution_x * rend.resolution_percentage / 100.0
         H = rend.resolution_y * rend.resolution_percentage / 100.0
 
-        # focal length in pixels (square‑pixel assumption ⇒ fx = fy)
+        # Focal length in pixels
         fx = cam.lens * (W / cam.sensor_width)
+        fy = cam.lens * (H / cam.sensor_height)
 
         cx = W / 2.0
         cy = H / 2.0
 
-        lines = [
-            f"{fx:.10f} {cx:.0f} {cy:.0f} 0.",
-            "0. 0. 0.",
-            "0.",
-            "1.",
-            f"{int(H)} {int(W)}"
+        K4 = [
+            [fx,  0.0,  cx, 0.0],
+            [0.0,  fy,  cy, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
         ]
 
+        txt = "\n".join(" ".join(f"{v:.10f}" for v in row) for row in K4)
         out_path = os.path.join(output_path, "camera_intrinsics.txt")
         with open(out_path, "w") as f:
-            f.write("\n".join(lines))
+            f.write(txt)
 
-        print(f"[CameraIntrinsics] camera_intrinsics.txt saved to {out_path}")
+        print(f"[CameraIntrinsics] 4x4 intrinsics written → {out_path}")
         self._written = True
