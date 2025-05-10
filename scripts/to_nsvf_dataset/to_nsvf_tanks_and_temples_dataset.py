@@ -24,7 +24,6 @@ Structure written
 
 from __future__ import annotations
 import argparse
-import json
 import shutil
 import sys
 import random
@@ -33,7 +32,7 @@ from pathlib import Path
 import numpy as np
 
 RE_MASK = re.compile(r'^(\d+)_masked_.*\.png$')
-RE_PROJ = re.compile(r'^(\d+)_camera_projection_matrix\.json$')
+RE_PROJ = re.compile(r'^(\d+)_camera_projection_matrix\.txt$')
 
 
 def parse_args():

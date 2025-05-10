@@ -23,7 +23,6 @@ output_dir/
 
 from __future__ import annotations
 import argparse
-import json
 import re
 import shutil
 import sys
@@ -32,7 +31,7 @@ import numpy as np
 
 RE_RGB   = re.compile(r'^(\d+)_render\.png$')
 RE_MASK  = re.compile(r'^(\d+)_mask_.*\.png$')
-RE_PROJ  = re.compile(r'^(\d+)_camera_projection_matrix\.json$')
+RE_PROJ  = re.compile(r'^(\d+)_camera_projection_matrix\.txt$')
 RE_SCALE = re.compile(r'^normalization_matrix\.json$')        # optional
 
 def parse_args() -> tuple[Path, Path]:
