@@ -72,19 +72,13 @@ def gather_views(src_dir: Path):
     return complete
 
 
-def convert_compact_intrinsics(compact_path: Path) -> np.ndarray:
-    """Read 11‑value intrinsics and return a 4×4 matrix."""
-    with open(compact_path, "r") as f:
-        tokens = f.read().strip().split()          # <-- variable lines OK
-    vals = np.array(list(map(float, tokens)), dtype=np.float64)
-    if vals.size < 11:
-        raise ValueError("intrinsics file must contain at least 11 numbers")
-    fx, cx, cy = vals[:3]
+def convert_intrinsics(path: Path) -> np.ndarray:
+    """Read intrinsics and return a 4x4 matrix."""
+    vals = np.loadtxt(path, dtype=np.float64)
+    if vals.shape != (3, 3):
+        raise ValueError(f"{path} does not hold a 3x3 matrix")
     K4 = np.eye(4, dtype=np.float64)
-    K4[0, 0] = fx
-    K4[1, 1] = fx
-    K4[0, 2] = cx
-    K4[1, 2] = cy
+    K4[:3, :3] = vals
     return K4
 
 
@@ -93,7 +87,7 @@ def load_projection(json_path: Path) -> np.ndarray:
     with open(json_path, "r") as f:
         mat = np.array(json.load(f), dtype=np.float64)
     if mat.shape != (3, 4):
-        raise ValueError(f"{json_path} does not hold a 3×4 matrix")
+        raise ValueError(f"{json_path} does not hold a 3x4 matrix")
     pose = np.eye(4, dtype=np.float64)
     pose[:3, :] = mat
     return pose
@@ -126,7 +120,7 @@ def main():
     intr_src = in_dir / "camera_intrinsics.txt"
     if not intr_src.exists():
         sys.exit("[ERR] camera_intrinsics.txt not found")
-    K4 = convert_compact_intrinsics(intr_src)
+    K4 = convert_intrinsics(intr_src)
     save_matrix(K4, out_dir / "intrinsics.txt")
     print("[INFO] intrinsics.txt written")
 
