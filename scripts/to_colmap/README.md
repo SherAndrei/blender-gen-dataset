@@ -16,8 +16,8 @@ Enable at least the following plugins in *config.toml*:
 
 | Plugin                                   | Why it is needed                               | Output file(s)                                           |
 | ---------------------------------------- | ---------------------------------------------- | -------------------------------------------------------- |
-| **camera_projection_matrix**                           | 3 × 4 camera projection per view               | `###_camera_projection_matrix.txt`                      |
-| **camera\_intrinsics**                   | Full 4 × 4 intrinsic matrix                    | `camera_intrinsics.txt`                                         |
+| **camera_extrinsics** | 3x4 camera extrinsic matrix per view               | `###_camera_extrinsics.txt`                      |
+| **camera\_intrinsics**                   | Full 4x4 intrinsic matrix                    | `camera_intrinsics.txt`                                         |
 | **mask** (optionally) | The BW images you want COLMAP to use          | `###_mask_###.png` |
 
 Run the usual rendering command:
@@ -30,10 +30,10 @@ After the batch you should have:
 
 ```
 output_dir/
-├── 000_camera_projection_matrix.txt
+├── 000_camera_extrinsics.txt
 ├── 000_mask_000.png
 ├── 000_render.png
-├── 001_camera_projection_matrix.txt
+├── 001_camera_extrinsics.txt
 ├── ...
 ├── camera_intrinsics.txt
 ```
@@ -169,3 +169,7 @@ Continue with COLMAP steps below.
 | *Can I skip sparse reconstruction entirely?* | Yes: as long as the database contains camera + image tables, you may run only `image_undistorter`, `patch_match_stereo`, `stereo_fusion`. |
 
 [^1]: camera without distortions
+
+---
+
+![preview](prior_poses-cameras.png)
