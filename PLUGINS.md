@@ -55,6 +55,7 @@ class MyPlugin(IPlugin):
 | **masked**                   | Creates transparent‑background RGB images where the object is retained and all other pixels are α=0.           | `###_masked_###.png`                 |
 | **bounding\_box**            | Saves the scene **bounding box** and an initial voxel size to `bbox.txt`; supports regex‑based object exclusion. | `bounding_box.txt`                          |
 | **camera\_intrinsics**       | Writes 3x3 camera intrinsic matrix.                         | `camera_intrinsics.txt`                     |
+| **camera\_extrinsics**       | Writes 3x4 camera extrinsic matrix.                         | `###_camera_extrinsics.txt`                     |
 
 ## Examples
 
