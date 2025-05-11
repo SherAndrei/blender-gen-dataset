@@ -52,17 +52,20 @@ poetry run python to_colmap.py ./output_dir ./colmap_project
 
 1. **Renames images** – `012_render.png` → `012.png` and copies them to
    `colmap_project/images/`.
-2. **Handles optional masks** – if `012_mask_000.png` exists it is copied as
+1. **Handles optional masks** – if `012_mask_000.png` exists it is copied as
    `colmap_project/masks/012.png.png` (*this is the exact file‑naming rule
    COLMAP uses to apply per‑image alpha masks; see [FAQ](https://colmap.github.io/faq.html#mask-image-regions)*).
-3. **Reads intrinsics** (`camera_intrinsics.txt`) and writes
+1. **Creates COLMAP database** (`preloaded.db`) — initializes each required table
+  (*this allows to skip manual matching of images and camera indices*). Database is initialized using [this](https://github.com/colmap/colmap/blob/5d9222729ee2edac80c10281668a49312a7f9498/scripts/python/database.py) script.
+1. **Reads intrinsics** (`camera_intrinsics.txt`) and writes them to database and to
    `colmap_project/cameras.txt` using the **OPENCV** model:
 
    ```
    # CAMERA_ID, MODEL, WIDTH, HEIGHT, FX, FY, CX, CY, K1, K2, P1, P2
    1 OPENCV 800 800 fx fy cx cy 0 0 0 0
    ```
-4. **Reads every** `###_camera_projection_matrix.txt`, converts 3 × 4 *P*
+1. **Adds images to database** with correct camera_id and image_id.
+1. **Reads every** `###_camera_extrinsics.txt`, converts 3 × 4 *Rt*
    to camera‑to‑world quaternion + translation, and appends a line to
    `colmap_project/images.txt`:
 
@@ -83,9 +86,11 @@ colmap_project/
 │   ├── 000.png.png
 │   ├── 001.png.png
 │   └── ...
+├── preloaded.db
 └── sparse/
-    └── 0/
+    └── manually_created/
         ├── cameras.txt
+        ├── points3D.txt
         └── images.txt
 ```
 
@@ -95,100 +100,63 @@ Continue with COLMAP steps below.
 
 ## 3 – Run COLMAP with known poses
 
-1. **Create an empty database**
-
-   ```bash
-   colmap database_creator --database_path db.db
-   ```
-2. **Populate database from text files**
-
-   ```bash
-   colmap model_converter \
-       --input_path cameras.txt,images.txt \
-       --output_path sparse_init --output_type TXT \
-       --database_path db.db        # writes cameras & images into DB
-   ```
-3. **Extract features** *(no pose estimation)*
+1. Recompute features from the images of the known camera poses as follows:
 
    ```bash
    colmap feature_extractor \
-       --database_path db.db \
-       --image_path images \
-       --ImageReader.single_camera 1 \
-       --ImageReader.camera_model OPENCV \
-       --ImageReader.camera_params fx,fy,cx,cy,0,0,0,0
-   ```
-4. *(Optional)* **Match features** and build a sparse model if you need it:
-
-   ```bash
-   colmap exhaustive_matcher --database_path db.db
-   colmap mapper --database_path db.db --image_path images \
-                 --input_path sparse_init --output_path sparse
-   ```
-5. **Dense reconstruction** directly from the known poses (or the refined
-   sparse model):
-
-   ```bash
-   colmap image_undistorter  --image_path images --input_path sparse_init \
-                             --output_path dense --output_type COLMAP
-   colmap patch_match_stereo --workspace_path dense
-   colmap stereo_fusion      --workspace_path dense --output_path dense/fused.ply
+      --database_path ./colmap_project/preloaded.db \
+      --image_path ./colmap_project/images \
+      --ImageReader.mask_path ./colmap_project/masks
    ```
 
-After `stereo_fusion` you will have a dense point cloud
-`dense/fused.ply` reconstructed from the Blender‑generated views.
+   Since we use `preloaded.db`, COLMAP should use present images, masks and camera settings.
+   <details>
 
----
+   <summary>Example of COLMAP log</summary>
 
-## 3 – Run COLMAP with known poses
-
-1. (*Optionally*) **Create an empty project in output directory**
-
-   ```bash
-	 colmap project_generator --quality=extreme --random_seed=1 --output_path=path/to/output/project.ini
-	 ```
-1. **Create an empty database**
-
-   ```bash
-   colmap database_creator --database_path --random_seed=1 path/to/output/db.db
    ```
-1. **Populate database from text files**
+   I20250510 20:49:53.332645 36308 feature_extraction.cc:258] Processed file [191/200]
+   I20250510 20:49:53.338730 36308 feature_extraction.cc:261]   Name:            190_render.png
+   I20250510 20:49:53.348786 36308 feature_extraction.cc:270]   Dimensions:      224 x 224
+   I20250510 20:49:53.358615 36308 feature_extraction.cc:273]   Camera:          #1 - OPENCV
+   I20250510 20:49:53.370881 36308 feature_extraction.cc:276]   Focal Length:    502.24px (Prior)
+   I20250510 20:49:53.370965 36308 feature_extraction.cc:280]   Features:        346
+   I20250510 20:49:53.371224 36308 feature_extraction.cc:258] Processed file [192/200]
+   I20250510 20:49:53.371460 36308 feature_extraction.cc:261]   Name:            191_render.png
+   I20250510 20:49:53.371499 36308 feature_extraction.cc:270]   Dimensions:      224 x 224
+   I20250510 20:49:53.371557 36308 feature_extraction.cc:273]   Camera:          #1 - OPENCV
+   I20250510 20:49:53.371591 36308 feature_extraction.cc:276]   Focal Length:    502.24px (Prior)
+   I20250510 20:49:53.371626 36308 feature_extraction.cc:280]   Features:        363
+   ```
+   Note the "(Prior)" mark and matching cameras.
+
+   </details>
+1. Match features and triangulate all observations of registered images in an existing model using the feature matches in a database.
 
    ```bash
-   colmap model_converter \
-       --input_path cameras.txt,images.txt \
-       --output_path sparse_init --output_type TXT \
-       --database_path db.db        # writes cameras & images into DB
-   ```
-3. **Extract features** *(no pose estimation)*
+   colmap exhaustive_matcher \ # or alternatively any other matcher
+       --database_path ./colmap_project/preloaded.db
 
+   colmap point_triangulator \
+       --database_path ./colmap_project/preloaded.db \
+       --image_path ./colmap_project/images \
+       --input_path ./colmap_project/sparse/manually_created \
+       --output_path ./colmap_project/sparse/triangulated
+   ```
+1. Compute dense model as follows
    ```bash
-   colmap feature_extractor \
-       --database_path db.db \
-       --image_path images \
-       --ImageReader.single_camera 1 \
-       --ImageReader.camera_model OPENCV \
-       --ImageReader.camera_params fx,fy,cx,cy,0,0,0,0
-   ```
-4. *(Optional)* **Match features** and build a sparse model if you need it:
+   colmap image_undistorter \
+       --image_path ./colmap_project/images \
+       --input_path ./colmap_project/sparse/triangulated \
+       --output_path ./colmap_project/dense/
 
-   ```bash
-   colmap exhaustive_matcher --database_path db.db
-   colmap mapper --database_path db.db --image_path images \
-                 --input_path sparse_init --output_path sparse
-   ```
-5. **Dense reconstruction** directly from the known poses (or the refined
-   sparse model):
+   colmap patch_match_stereo \
+       --workspace_path ./colmap_project/dense/
 
-   ```bash
-   colmap image_undistorter  --image_path images --input_path sparse_init \
-                             --output_path dense --output_type COLMAP
-   colmap patch_match_stereo --workspace_path dense
-   colmap stereo_fusion      --workspace_path dense --output_path dense/fused.ply
+   colmap stereo_fusion \
+       --workspace_path ./colmap_project/dense/ \
+       --workspace_path ./colmap_project/dense/fused.ply
    ```
-
-After `stereo_fusion` you will have a dense point cloud
-`dense/fused.ply` reconstructed from the Blender‑generated views.
 
 ---
 
