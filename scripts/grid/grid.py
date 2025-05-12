@@ -10,12 +10,12 @@ def make_grid(input_dir: str, rows: int, cols: int, out_file: str) -> None:
         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif'))
     )
 
-    # Load first image to get size, or default to 100×100
+    # Load first image to get size
     if files:
         first = Image.open(os.path.join(input_dir, files[0]))
         w, h = first.size
     else:
-        w = h = 100  # arbitrary blank size if no images at all
+        raise RuntimeError("No images found")
 
     # Create blank canvas
     grid = Image.new('RGBA', (cols * w, rows * h), (255, 255, 255, 0))
