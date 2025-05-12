@@ -7,7 +7,7 @@ def make_grid(input_dir: str, rows: int, cols: int, out_file: str) -> None:
     # Gather PNG files
     files = sorted(
         f for f in os.listdir(input_dir)
-        if f.lower().endswith('.png')
+        if f.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif'))
     )
 
     # Load first image to get size, or default to 100×100
