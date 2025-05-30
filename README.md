@@ -57,6 +57,17 @@ options:
 	![preview](./references/suzannes.png)
 
 ---
+## Configuration
+
+Script provides extensive configuration, see [config.default.toml](config.default.toml).
+
+Dumping the parsed config
+
+	```bash
+	blender --background --python generate-batch.py -- --dump-config
+	```
+
+---
 ## Plugins
 
 See [PLUGINS.md](PLUGINS.md).

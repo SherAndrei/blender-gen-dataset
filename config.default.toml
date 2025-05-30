@@ -1,0 +1,167 @@
+###############################################################################
+#  config.default.toml                                                        #
+#                                                                             #
+#  Master list of every knob `generate-batch.py` currently understands.       #
+#  Copy this file to `config.toml` and change the values you need.       #
+###############################################################################
+
+###############################################################################
+# GLOBAL                                                                      #
+###############################################################################
+# Seed for the Python `random` module.                                        #
+# Use it to make camera sampling reproducible.                               #
+seed = 42
+
+###############################################################################
+# WORLD (background / environment)                                            #
+###############################################################################
+[world]
+# Multiplier for HDRI or solid-color background brightness.
+strength = 1.0
+
+# Pick ONE of:  "default", "environment_texture", "image_texture".
+# Everything else in this section is ignored unless it matches this string.
+color = "default"
+
+# ---------- Solid colour -------------------------------------------------- #
+[world.default]
+# RGBA values in linear space, 0–1.
+RGBA = [0.05, 0.05, 0.05, 1.0]
+
+# ---------- HDRI environment map ------------------------------------------ #
+[world.environment_texture]
+# Absolute or relative path to .hdr / .exr file.
+path = "/path/to/studio.exr"
+
+# ---------- 2-D image backdrop ------------------------------------------- #
+[world.image_texture]
+# PNG / JPG the size of your output frame.
+path      = "/path/to/backplate.png"
+# How to tile the image if the render window is larger than the picture.
+# One of:  "CLIP", "EXTEND", "REPEAT", "MIRROR".
+extension = "CLIP"
+
+###############################################################################
+# RENDER                                                                      #
+###############################################################################
+[render]
+# Output resolution in pixels.
+resolution_x = 1920
+resolution_y = 1080
+# 100 = render at full resolution, 50 = half-res test renders, etc.
+resolution_percentage = 100
+
+# Persist data between frames (Cycles). Speeds up many renders but uses RAM.
+use_persistent_data = false
+
+# Unified sample count. (EEVEE ignores this and uses its own *taa_render_samples*.)
+samples = 256
+
+# Choose backend:  "cycles"  or  "eevee".
+engine = "cycles"
+
+# ---------- File format & colour settings --------------------------------- #
+[render.image_settings]
+file_format = "PNG"     # PNG, JPEG, OPEN_EXR, TIFF, BMP…
+color_mode  = "RGBA"    # RGB or RGBA
+color_depth = "8"       # 8 or 16 bit per channel
+compression = 15        # PNG compression 0–100
+quality     = 90        # JPEG only, 0–100
+
+# ---------- Cycles-specific tweaks ---------------------------------------- #
+[render.cycles]
+device                  = "GPU"   # GPU or CPU
+compute_device_type     = "CUDA"  # CUDA, OPTIX, HIP, METAL…
+use_denoising           = true
+use_adaptive_sampling   = true
+max_bounces             = 12
+transparent_max_bounces = 8
+diffuse_bounces         = 4
+glossy_bounces          = 4
+transmission_bounces    = 4
+volume_bounces          = 0
+
+# ---------- EEVEE / EEVEE-Next ------------------------------------------- #
+[render.eevee]
+# EEVEE-Next only; ignored in legacy EEVEE.
+use_raytracing   = false
+# Legacy EEVEE only; ignored in EEVEE-Next.
+use_ssr          = true
+# Ambient occlusion.
+use_gtao         = true
+# VRAM pool for shadows (1024–16 384).
+shadow_pool_size = 2048
+
+###############################################################################
+# LIGHT                                                                       #
+###############################################################################
+[light]
+type  = "SUN"   # See Blender’s Add → Light menu for valid strings
+energy = 1.0    # Strength in Watts (for SUN it’s arbitrary scale)
+mode   = "uniform"  # Currently the only implemented mode.
+
+# ---------- Uniform-sphere light sampler ---------------------------------- #
+[light.uniform]
+amount    = 3           # Number of lights
+radius    = 10.0        # Distance from origin
+inc_start = "math.pi/6" # All angular fields accept Python math expressions
+inc_stop  = "math.pi/2"
+inc_step  = "math.pi/6"
+
+###############################################################################
+# CAMERA                                                                      #
+###############################################################################
+[camera]
+sensor_width  = 22.3   # mm (APS-C Canon)
+sensor_height = 14.9
+use_dof       = false  # Toggle depth-of-field
+
+# ---------- Physical lens settings --------------------------------------- #
+[camera.lens]
+focal_length = 50      # mm
+clip_start   = 0.1     # Near clip (metres)
+clip_end     = 1000    # Far clip
+
+# ---------- Depth-of-field tweaks (requires use_dof = true) -------------- #
+[camera.dof]
+aperture_fstop = 2.8
+
+# ---------- Camera placement strategy ------------------------------------ #
+[camera.location]
+mode = "random"   # "random" or "uniform"
+
+# --- Random placement on a spherical shell -------------------------------- #
+[camera.location.random]
+r_min   = 10
+r_max   = 10
+inc_min = 0
+inc_max = "math.pi/2"
+azi_min = 0
+azi_max = "2*math.pi"
+
+# --- Uniform rings (good for turntables) ---------------------------------- #
+[camera.location.uniform]
+radius    = 10
+inc_start = "math.pi/4"
+inc_stop  = "math.pi/2"
+inc_step  = "math.pi/8"
+
+###############################################################################
+# PLUGINS                                                                     #
+###############################################################################
+[plugins]
+# List names (module filenames) that live in ./plugins/ to auto-load.
+enabled = ["depth", "mask"]
+
+# ─────────────────────────── Depth ───────────────────────────
+# (no options – the plugin ignores its cfg)
+
+# ─────────────────────────── Mask ────────────────────────────
+[plugins.mask]
+exclude_pattern = "^IgnoreMe_"      # objects matching this regex keep index 0
+
+[plugins.mask.format]              # optional override; defaults → PNG 16-bit BW
+file_format  = "PNG"
+color_depth  = "8"
+color_mode   = "BW"
+
