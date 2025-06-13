@@ -73,17 +73,23 @@ Dumping the parsed config
 See [PLUGINS.md](PLUGINS.md).
 
 ---
+## Compatibility
 
-To assemble `.npz` dataset from batches we'll run `assemble-dataset.py`. This script requires `Pillow` package for converting images into rgb arrays. `Pillow` can be installed with
-```sh
-blender --background --python-expr "import sys; import subprocess; subprocess.check_call([sys.executable, \"-m\", \"pip\", \"install\", \"pillow\"])"
-```
+The `compat/` directory contains helper scripts to restructure the output of this Blender dataset generator into formats compatible with popular neural rendering and 3D reconstruction frameworks:
 
-To assemble `.npz` dataset from batches run
-```sh
-blender --background --python assemble-dataset.py -- \
-		--input <batches_folder> [--output dataset.npz]
-```
+### Available Converters:
+1. **COLMAP** - Converts to standard COLMAP structure (images/, sparse/)
+   ```bash
+   python compat/to_colmap/to_colmap.py <input_dir> <output_dir>
+   ```
+2. **NSVF** - Prepares data for Neural Sparse Voxel Fields pipeline
+   ```bash
+   python compat/to_nsvf_dataset/to_nsvf_dataset.py <input_dir> <output_dir>
+   ```
+3. **IDR** - Formats data for Implicit Differentiable Renderer requirements
+   ```bash
+   python compat/to_idr_dataset/to_idr_dataset.py <input_dir> <output_dir>
+   ```
 
 ---
 
